@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium Booking System</title>
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0A0A0A;
+            --card-bg: #161616;
+            --accent: #39FF14;
+            --accent-dim: rgba(57, 255, 20, 0.1);
+            --text-main: #FFFFFF;
+            --text-dim: #888888;
+            --error: #ff4b4b;
+            --radius: 12px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Container do Celular (Mockup) */
+        .app-container {
+            width: 100%;
+            max-width: 400px;
+            height: 850px;
+            background: var(--bg-color);
+            position: relative;
+            overflow-y: auto;
+            border: 1px solid #222;
+            display: flex;
+            flex-direction: column;
+            scrollbar-width: none;
+        }
+
+        .app-container::-webkit-scrollbar { display: none; }
+
+        /* Transições de Tela */
+        .screen {
+            display: none;
+            padding: 24px;
+            animation: fadeIn 0.5s ease forwards;
+            flex-direction: column;
+            min-height: 100%;
+        }
+
+        .screen.active { display: flex; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Componentes Genéricos */
+        h1 { font-size: 24px; font-weight: 700; margin-bottom: 8px; }
+        p { color: var(--text-dim); font-size: 14px; margin-bottom: 24px; }
+
+        input {
+            width: 100%;
+            background: var(--card-bg);
+            border: 1px solid #333;
+            padding: 16px;
+            border-radius: var(--radius);
+            color: white;
+            margin-bottom: 16px;
+            outline: none;
+            transition: var(--transition);
+        }
+
+        input:focus { border-color: var(--accent); }
+
+        .btn-primary {
+            background: var(--accent);
+            color: black;
+            border: none;
+            padding: 16px;
+            border-radius: var(--radius);
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+            width: 100%;
+        }
+
+        .btn-primary:disabled {
+            background: #222;
+            color: #555;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--accent);
+            text-align: center;
+            margin-top: 16px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        /* TELA 1: LOGIN */
+        .logo-area {
+            text-align: center;
+            margin: 60px 0;
+        }
+        .logo-circle {
+            width: 60px;
+            height: 60px;
+            border: 2px solid var(--accent);
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            box-shadow: 0 0 20px var(--accent-dim);
+        }
+
+        /* TELA 2: CALENDÁRIO */
+        .toggle-container {
+            display: flex;
+            background: var(--card-bg);
+            padding: 4px;
+            border-radius: 10px;
+            margin-bottom: 24px;
+        }
+        .toggle-btn {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .toggle-btn.active {
+            background: #333;
+            color: var(--accent);
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+            margin-bottom: 24px;
+        }
+        .day {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .day.disabled { color: #333; cursor: not-allowed; }
+        .day.selected { background: var(--accent); color: black; font-weight: bold; }
+        .day:not(.disabled):not(.selected):hover { background: var(--accent-dim); }
+
+        /* TELA 3: TIME SLOTS */
+        .slots-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+        .slot {
+            padding: 12px;
+            text-align: center;
+            border: 1px solid #333;
+            border-radius: var(--radius);
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .slot.selected { background: var(--accent); color: black; border-color: var(--accent); }
+        .slot.booked { opacity: 0.3; text-decoration: line-through; pointer-events: none; }
+
+        /* TELA 4: SERVICES */
+        .service-list {
+            flex: 1;
+            overflow-y: auto;
+        }
+        .service-card {
+            background: var(--card-bg);
+            padding: 16px;
+            border-radius: var(--radius);
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .service-card.selected { border-color: var(--accent); }
+        .service-info h4 { font-size: 16px; }
+        .service-price { color: var(--accent); font-weight: 600; }
+
+        /* FOOTER FIXO */
+        .summary-panel {
+            background: #111;
+            border-top: 1px solid #222;
+            padding: 20px;
+            margin: 0 -24px -24px -24px;
+        }
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        .total-price { font-size: 20px; font-weight: 700; color: var(--accent); }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        
+        <!-- TELA 1: LOGIN -->
+        <section id="screen-login" class="screen active">
+            <div class="logo-area">
+                <div class="logo-circle"></div>
+                <h2 style="margin-top: 15px;">STUDIO.</h2>
+            </div>
+            <h1>Bem-vindo</h1>
+            <p>Entre para agendar seu tratamento exclusivo.</p>
+            
+            <input type="email" placeholder="E-mail">
+            <input type="password" placeholder="Password">
+            
+            <button class="btn-primary" onclick="goToStep(2)">Login</button>
+            <div class="btn-secondary">Create Account</div>
+        </section>
+
+        <!-- TELA 2: CALENDÁRIO -->
+        <section id="screen-calendar" class="screen">
+            <h1>Escolha a Data</h1>
+            <p>Selecione um dia disponível em Maio ou Junho.</p>
+
+            <div class="toggle-container">
+                <div class="toggle-btn active" onclick="switchMonth('may')">Maio</div>
+                <div class="toggle-btn" onclick="switchMonth('june')">Junho</div>
+            </div>
+
+            <div class="calendar-grid" id="calendarGrid">
+                <!-- Gerado por JS -->
+            </div>
+
+            <div style="flex: 1;"></div>
+            <button class="btn-primary" id="btn-next-calendar" disabled onclick="goToStep(3)">Próximo Passo</button>
+        </section>
+
+        <!-- TELA 3: HORÁRIOS -->
+        <section id="screen-time" class="screen">
+            <h1 id="selected-date-title">Horários</h1>
+            <p>Disponibilidade em tempo real para hoje.</p>
+
+            <div class="slots-grid" id="slotsGrid">
+                <div class="slot booked">09:00</div>
+                <div class="slot" onclick="selectSlot(this)">09:30</div>
+                <div class="slot" onclick="selectSlot(this)">10:00</div>
+                <div class="slot booked">10:30</div>
+                <div class="slot" onclick="selectSlot(this)">11:00</div>
+                <div class="slot" onclick="selectSlot(this)">14:00</div>
+                <div class="slot" onclick="selectSlot(this)">15:30</div>
+                <div class="slot" onclick="selectSlot(this)">17:00</div>
+                <div class="slot" onclick="selectSlot(this)">18:30</div>
+            </div>
+
+            <div style="flex: 1;"></div>
+            <button class="btn-primary" id="btn-next-time" disabled onclick="goToStep(4)">Próximo Passo</button>
+            <div class="btn-secondary" onclick="goToStep(2)">Voltar</div>
+        </section>
+
+        <!-- TELA 4: SERVIÇOS & RESUMO -->
+        <section id="screen-summary" class="screen">
+            <h1>Serviços</h1>
+            <p>Selecione os tratamentos desejados.</p>
+
+            <div class="service-list">
+                <div class="service-card" onclick="toggleService(this, 'Corte Moderno', 80)">
+                    <div class="service-info">
+                        <h4>Corte Moderno</h4>
+                        <span style="font-size: 12px; color: #555;">45 min</span>
+                    </div>
+                    <div class="service-price">R$ 80</div>
+                </div>
+
+                <div class="service-card" onclick="toggleService(this, 'Barba & Toalha Quente', 50)">
+                    <div class="service-info">
+                        <h4>Barba Premium</h4>
+                        <span style="font-size: 12px; color: #555;">30 min</span>
+                    </div>
+                    <div class="service-price">R$ 50</div>
+                </div>
+
+                <div class="service-card" onclick="toggleService(this, 'Tratamento Facial', 120)">
+                    <div class="service-info">
+                        <h4>Tratamento Facial</h4>
+                        <span style="font-size: 12px; color: #555;">60 min</span>
+                    </div>
+                    <div class="service-price">R$ 120</div>
+                </div>
+            </div>
+
+            <div class="summary-panel">
+                <div class="summary-row">
+                    <span id="display-date">Data: -</span>
+                    <span id="display-time">Hora: -</span>
+                </div>
+                <div class="summary-row">
+                    <span>Total estimado:</span>
+                    <span class="total-price" id="display-total">R$ 0</span>
+                </div>
+                <button class="btn-primary" style="margin-top: 10px;" onclick="confirmBooking()">Confirmar Agendamento</button>
+            </div>
+        </section>
+
+    </div>
+
+    <script>
+        // Estado da Aplicação
+        let state = {
+            step: 1,
+            month: 'may',
+            selectedDay: null,
+            selectedTime: null,
+            services: [],
+            total: 0
+        };
+
+        // Navegação simples
+        function goToStep(step) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            const screenIds = ['screen-login', 'screen-calendar', 'screen-time', 'screen-summary'];
+            document.getElementById(screenIds[step-1]).classList.add('active');
+            state.step = step;
+            
+            if(step === 4) updateSummary();
+        }
+
+        // Calendário Lógica
+        function switchMonth(m) {
+            state.month = m;
+            document.querySelectorAll('.toggle-btn').forEach(b => b.classList.toggle('active'));
+            renderCalendar();
+        }
+
+        function renderCalendar() {
+            const grid = document.getElementById('calendarGrid');
+            grid.innerHTML = '';
+            const daysInMonth = state.month === 'may' ? 31 : 30;
+            const startDay = 10; // Exemplo: dias antes de 10 são "passados"
+            
+            for (let i = 1; i <= daysInMonth; i++) {
+                const dayEl = document.createElement('div');
+                dayEl.classList.add('day');
+                dayEl.innerText = i;
+                
+                if (state.month === 'may' && i < startDay) {
+                    dayEl.classList.add('disabled');
+                } else {
+                    dayEl.onclick = () => selectDay(i, dayEl);
+                }
+                
+                grid.appendChild(dayEl);
+            }
+        }
+
+        function selectDay(day, el) {
+            document.querySelectorAll('.day').forEach(d => d.classList.remove('selected'));
+            el.classList.add('selected');
+            state.selectedDay = `${day} de ${state.month === 'may' ? 'Maio' : 'Junho'}`;
+            document.getElementById('btn-next-calendar').disabled = false;
+            document.getElementById('selected-date-title').innerText = state.selectedDay;
+        }
+
+        // Horários Lógica
+        function selectSlot(el) {
+            document.querySelectorAll('.slot').forEach(s => s.classList.remove('selected'));
+            el.classList.add('selected');
+            state.selectedTime = el.innerText;
+            document.getElementById('btn-next-time').disabled = false;
+        }
+
+        // Serviços Lógica
+        function toggleService(el, name, price) {
+            el.classList.toggle('selected');
+            const index = state.services.findIndex(s => s.name === name);
+            
+            if (index > -1) {
+                state.services.splice(index, 1);
+                state.total -= price;
+            } else {
+                state.services.push({name, price});
+                state.total += price;
+            }
+            updateSummary();
+        }
+
+        function updateSummary() {
+            document.getElementById('display-date').innerText = `Data: ${state.selectedDay || '-'}`;
+            document.getElementById('display-time').innerText = `Hora: ${state.selectedTime || '-'}`;
+            document.getElementById('display-total').innerText = `R$ ${state.total}`;
+        }
+
+        function confirmBooking() {
+            if(state.services.length === 0) {
+                alert("Selecione pelo menos um serviço.");
+                return;
+            }
+            alert(`Reserva Confirmada!\n${state.selectedDay} às ${state.selectedTime}\nTotal: R$ ${state.total}`);
+            location.reload();
+        }
+
+        // Init
+        renderCalendar();
+    </script>
+</body>
+</html>
