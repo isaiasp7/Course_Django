@@ -15,7 +15,7 @@ urlpatterns = [
     path(
         'selectHour/',
         views.select_hour,
-        name='selectHour'
+        name='select_hour'
     ),
     path(
         'confirmAppoint/',

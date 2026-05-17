@@ -1,1 +1,293 @@
-<h1>selecionar o dia</h1>
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Escolha a Data - Agendamento</title>
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0A0A0A;
+            --card-bg: #161616;
+            --accent: #39FF14;
+            --accent-dim: rgba(57, 255, 20, 0.1);
+            --text-main: #FFFFFF;
+            --text-dim: #888888;
+            --error: #ff4b4b;
+            --radius: 12px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Container */
+        .app-container {
+            width: 100%;
+            max-width: 400px;
+            min-height: 600px;
+            background: var(--bg-color);
+            position: relative;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Componentes Genéricos */
+        h1 {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        p {
+            color: var(--text-dim);
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: black;
+            border: none;
+            padding: 16px;
+            border-radius: var(--radius);
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+            width: 100%;
+        }
+
+        .btn-primary:disabled {
+            background: #222;
+            color: #555;
+            cursor: not-allowed;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            box-shadow: 0 0 20px var(--accent-dim);
+        }
+
+        /* TELA 2: CALENDÁRIO */
+        .toggle-container {
+            display: flex;
+            background: var(--card-bg);
+            padding: 4px;
+            border-radius: 10px;
+            margin-bottom: 24px;
+        }
+
+        .toggle-btn {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            color: var(--text-dim);
+            background: transparent;
+            border: none;
+            transition: var(--transition);
+        }
+
+        .toggle-btn.active {
+            background: #333;
+            color: var(--accent);
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+            margin-bottom: 24px;
+        }
+
+        .day {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: var(--transition);
+            border: 1px solid #333;
+        }
+
+        .day.disabled {
+            color: #333;
+            cursor: not-allowed;
+            background: #0A0A0A;
+        }
+
+        .day.selected {
+            background: var(--accent);
+            color: black;
+            font-weight: bold;
+            border-color: var(--accent);
+        }
+
+        .day:not(.disabled):not(.selected):hover {
+            background: var(--accent-dim);
+            border-color: var(--accent);
+        }
+
+        .spacer {
+            height: 200px;
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--accent);
+            border: none;
+            text-align: center;
+            margin-top: 16px;
+            cursor: pointer;
+            font-size: 14px;
+            padding: 10px;
+        }
+
+        .btn-secondary:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- TELA 2: CALENDÁRIO -->
+        <section id="screen-calendar" class="screen">
+            <h1>Escolha a Data</h1>
+            <p>Selecione um dia disponível em Maio ou Junho.</p>
+
+            <div class="toggle-container">
+                <button class="toggle-btn active" onclick="switchMonth('may')">Maio</button>
+                <button class="toggle-btn" onclick="switchMonth('june')">Junho</button>
+            </div>
+
+            <div class="calendar-grid" id="calendarGrid">
+                <!-- Gerado por JS -->
+            </div>
+
+            <div class="spacer"></div>
+            <button class="btn-primary" id="btn-next-calendar" disabled onclick="goToStep(3)">Próximo Passo</button>
+            <button class="btn-secondary" onclick="goBack()">Voltar</button>
+        </section>
+    </div>
+
+    <script>
+        // Estado da Aplicação
+        let state = {
+            step: 2,
+            month: null,
+            year: null,
+            selectedDay: null,
+            selectedTime: null,
+            services: [],
+            total: 0
+        };
+
+        // Horários disponíveis (8-11h e 14-18h com intervalos de 30min)
+        const availableSlots = [
+            '08:00', '08:30', '09:00', '09:30', '10:00', '10:30', '11:00',
+            '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30', '18:00'
+        ];
+
+        // Dados mockados de horários ocupados por dia
+        // Um dia fica indisponível quando TODOS os horários estão ocupados
+        const bookedSlots = {
+            '5_may': ['08:00', '08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30', '18:00'],
+            '12_may': ['08:00', '08:30', '09:00'],
+            '15_may': ['14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30', '18:00'],
+            '3_june': ['08:00', '08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30', '18:00'],
+        };
+
+        // Verificar se um dia está completamente indisponível
+        function isDayFullyBooked(day, month) {
+            const dayKey = `${day}_${month}`;
+            const bookedForDay = bookedSlots[dayKey] || [];
+            return bookedForDay.length === availableSlots.length;
+        }
+
+        // Obter data atual e inicializar estado
+        function initializeCalendar() {
+            const today = new Date();
+            state.month = today.getMonth() === 4 ? 'may' : 'june'; // 4 = maio (0-indexed)
+            state.year = today.getFullYear();
+            state.currentDay = today.getDate();
+            renderCalendar();
+        }
+
+        // Calendário Lógica
+        function switchMonth(m) {
+            state.month = m;
+            document.querySelectorAll('.toggle-btn').forEach(b => b.classList.toggle('active'));
+            renderCalendar();
+        }
+
+        function renderCalendar() {
+            const grid = document.getElementById('calendarGrid');
+            grid.innerHTML = '';
+            const daysInMonth = state.month === 'may' ? 31 : 30;
+            const today = new Date();
+            const isCurrentMonth =
+                (state.month === 'may' && today.getMonth() === 4) ||
+                (state.month === 'june' && today.getMonth() === 5);
+
+            for (let i = 1; i <= daysInMonth; i++) {
+                const dayEl = document.createElement('div');
+                dayEl.classList.add('day');
+                dayEl.innerText = i;
+
+                const isPast = isCurrentMonth && i < state.currentDay;
+                const isFullyBooked = isDayFullyBooked(i, state.month);
+                const isDisabled = isPast || isFullyBooked;
+
+                if (isDisabled) {
+                    dayEl.classList.add('disabled');
+                } else {
+                    dayEl.onclick = () => selectDay(i, dayEl);
+                }
+
+                grid.appendChild(dayEl);
+            }
+        }
+
+        function selectDay(day, el) {
+            document.querySelectorAll('.day').forEach(d => d.classList.remove('selected'));
+            el.classList.add('selected');
+            const monthName = state.month === 'may' ? 'Maio' : 'Junho';
+            state.selectedDay = `${day} de ${monthName}`
+            document.getElementById('btn-next-calendar').disabled = false;
+        }
+
+        // Navegação
+        function goToStep(step) {
+            if (state.selectedDay) {
+                window.location.href = `/appointments/selectHour/?date=${encodeURIComponent(state.selectedDay)}`;
+            }
+        }
+
+        function goBack() {
+            window.history.back();
+        }
+
+        // Init
+        initializeCalendar();
+    </script>
+</body>
+</html>

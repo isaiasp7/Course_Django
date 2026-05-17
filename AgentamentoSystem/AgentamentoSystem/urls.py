@@ -8,7 +8,7 @@ Function views
     1. Add an import:  from my_app import views
     2. Add a URL to urlpatterns:  path('', views.home, name='home')
 Class-based views
-    1. Add an import:  from other_app.views import Home
+    1. Add a URL to urlpatterns:  1. Add an import:  from other_app.views import Home
     2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
 Including another URLconf
     1. Import the include() function: from django.urls import include, path
@@ -17,20 +17,14 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from django.shortcuts import redirect
-from AgentamentoSystem.view import home
-urlpatterns = [
 
+def home(request):
+    return redirect('accounts:login')
+
+urlpatterns = [
     path('', home),
 
-    path(
-        '',
-        include('Apps.accounts.urls')
-    ),
-
+    path('accounts/', include('Apps.accounts.urls')),
     path('admin/', admin.site.urls),
-
-    path(
-        'appointments/',
-        include('Apps.appointments.urls')
-    ),
+    path('appointments/', include('Apps.appointments.urls')),
 ]
