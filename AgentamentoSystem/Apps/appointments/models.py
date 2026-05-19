@@ -8,11 +8,10 @@ class Agenta(models.Model):
     servicoFK = models.ForeignKey(Cliente,null=False,on_delete=models.CASCADE)
 
     def __str__(self):
-        return f"{self.nome}"
+        return f"{self.data} - {self.hora}"
     
 class Servicos(models.Model):
-    preco = models.DecimalField(  max_digits = 4,
-        decimal_places = 2,null=False)
-    nome = models.CharField(70, null=False)
+    preco = models.DecimalField(max_digits=4, decimal_places=2, null=False)
+    nome = models.CharField(max_length=70, null=False)
     def __str__(self):
         return f"{self.nome}"

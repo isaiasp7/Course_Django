@@ -5,6 +5,7 @@ class Cliente(models.Model):
     nome =  models.CharField(max_length=80,null=False)
     email = models.EmailField(max_length=100,null=False)
     numero = models.CharField(max_length=15,null=False)
+    senha = models.CharField(max_length=100, null=False)
 
     def __str__(self):
         return f"{self.nome}"
@@ -16,4 +17,3 @@ class Profissional(models.Model):
 
     def __str__(self):
         return f"{self.nome}"
-    

@@ -1,1 +1,286 @@
-<h3>register</h3>
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro - STUDIO</title>
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0A0A0A;
+            --card-bg: #161616;
+            --accent: #39FF14;
+            --accent-dim: rgba(57, 255, 20, 0.1);
+            --text-main: #FFFFFF;
+            --text-dim: #888888;
+            --error: #ff4b4b;
+            --radius: 12px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow-y: auto;
+        }
+
+        /* Container */
+        .app-container {
+            width: 100%;
+            max-width: 400px;
+            min-height: auto;
+            background: var(--bg-color);
+            position: relative;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            margin: 20px 0;
+        }
+
+        /* Componentes Genéricos */
+        h1 { font-size: 24px; font-weight: 700; margin-bottom: 8px; }
+        h2 { font-size: 28px; font-weight: 700; }
+        p { color: var(--text-dim); font-size: 14px; margin-bottom: 24px; }
+
+        input {
+            width: 100%;
+            background: var(--card-bg);
+            border: 1px solid #333;
+            padding: 16px;
+            border-radius: var(--radius);
+            color: white;
+            margin-bottom: 16px;
+            outline: none;
+            transition: var(--transition);
+        }
+
+        input:focus { border-color: var(--accent); }
+
+        .btn-primary {
+            background: var(--accent);
+            color: black;
+            border: none;
+            padding: 16px;
+            border-radius: var(--radius);
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+            width: 100%;
+        }
+
+        .btn-primary:disabled {
+            background: #222;
+            color: #555;
+            cursor: not-allowed;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            box-shadow: 0 0 20px var(--accent-dim);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--accent);
+            text-align: center;
+            margin-top: 16px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .btn-secondary:hover {
+            text-decoration: underline;
+        }
+
+        /* CADASTRO */
+        .logo-area {
+            text-align: center;
+            margin: 40px 0;
+        }
+
+        .logo-circle {
+            width: 60px;
+            height: 60px;
+            border: 2px solid var(--accent);
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 24px;
+            box-shadow: 0 0 20px var(--accent-dim);
+        }
+
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .checkbox-container input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            margin: 0;
+            cursor: pointer;
+            accent-color: var(--accent);
+        }
+
+        .checkbox-container label {
+            font-size: 12px;
+            color: var(--text-dim);
+            cursor: pointer;
+        }
+
+        .checkbox-container label span {
+            color: var(--accent);
+        }
+
+        .error-message {
+            background: rgba(255, 75, 75, 0.1);
+            border: 1px solid #ff4b4b;
+            color: #ff4b4b;
+            padding: 12px;
+            border-radius: var(--radius);
+            margin-bottom: 16px;
+            font-size: 12px;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <!-- CADASTRO -->
+        <div class="logo-area">
+            <div class="logo-circle">✨</div>
+            <h2 style="margin-top: 15px;">STUDIO.</h2>
+        </div>
+
+        <h1>Criar Conta</h1>
+        <p>Preencha seus dados para começar.</p>
+
+        <div class="error-message" id="register-error"></div>
+
+        <form action="" method="post">
+             {% csrf_token %}
+                <input type="text" id="register-name" placeholder="Nome completo" autocomplete="name" name="nome">
+                <input type="email" id="register-email" placeholder="E-mail" autocomplete="email" name="email">
+                <input type="tel" id="register-phone" placeholder="(11) 99999-9999" autocomplete="tel" name="numero">
+        <!--Salvar posteriormente-->
+                <input type="password" id="register-password" placeholder="Senha" autocomplete="new-password" name="senha">
+                <input type="password" id="register-confirm-password" placeholder="Confirmar senha" autocomplete="new-password">
+
+        </form>
+        <div class="checkbox-container">
+            <input type="checkbox" id="register-terms">
+            <label for="register-terms">
+                Li e aceito os <span>Termos de Uso</span> e <span>Política de Privacidade</span>
+            </label>
+        </div>
+
+        <button class="btn-primary" onclick="handleRegister()">Cadastrar</button>
+        <a href="/accounts/login/" class="btn-secondary">Já tenho conta? <span style="color: var(--accent);">Entrar</span></a>
+    </div>
+
+    <script>
+        // Cadastro
+        function handleRegister() {
+            const name = document.getElementById('register-name').value.trim();
+            const email = document.getElementById('register-email').value.trim();
+            const phone = document.getElementById('register-phone').value.trim();
+            const password = document.getElementById('register-password').value.trim();
+            const confirmPassword = document.getElementById('register-confirm-password').value.trim();
+            const termsAccepted = document.getElementById('register-terms').checked;
+            const errorEl = document.getElementById('register-error');
+
+            if (!name || !email || !phone || !password || !confirmPassword) {
+                showError(errorEl, 'Preencha todos os campos');
+                return;
+            }
+
+            if (password !== confirmPassword) {
+                showError(errorEl, 'As senhas não coincidem');
+                return;
+            }
+
+            if (password.length < 6) {
+                showError(errorEl, 'A senha deve ter pelo menos 6 caracteres');
+                return;
+            }
+
+            if (!termsAccepted) {
+                showError(errorEl, 'Você deve aceitar os termos e condições');
+                return;
+            }
+            // Enviar dados para o Django via POST
+            fetch('/accounts/cadastro/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                    name: name,
+                    email: email,
+                    phone: phone,
+                    password: password
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    window.location.href = '/accounts/login/';
+                } else {
+                    showError(errorEl, data.error);
+                }
+            })
+            .catch(error => {
+                showError(errorEl, 'Erro ao processar cadastro');
+                console.error('Error:', error);
+            });
+        }
+
+        function showError(element, message, show = true) {
+            if (show) {
+                element.textContent = message;
+                element.classList.add('show');
+            } else {
+                element.classList.remove('show');
+            }
+        }
+
+        // Função para obter token CSRF
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+            }
+    </script>
+</body>
+</html>
