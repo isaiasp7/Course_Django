@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acesso Profissional - STUDIO</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0A0A0A;
+            --card-bg: #161616;
+            --accent: #39FF14;
+            --accent-dim: rgba(57, 255, 20, 0.1);
+            --text-main: #FFFFFF;
+            --text-dim: #888888;
+            --error: #ff4b4b;
+            --radius: 12px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 400px;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        h1 { font-size: 24px; font-weight: 700; margin-bottom: 8px; }
+        h2 { font-size: 28px; font-weight: 700; }
+        p { color: var(--text-dim); font-size: 14px; margin-bottom: 24px; }
+
+        input {
+            width: 100%;
+            background: var(--card-bg);
+            border: 1px solid #333;
+            padding: 16px;
+            border-radius: var(--radius);
+            color: white;
+            margin-bottom: 16px;
+            outline: none;
+            transition: var(--transition);
+        }
+
+        input:focus { border-color: var(--accent); }
+
+        .btn-primary {
+            background: var(--accent);
+            color: black;
+            border: none;
+            padding: 16px;
+            border-radius: var(--radius);
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+            width: 100%;
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 0 20px var(--accent-dim);
+        }
+
+        .btn-secondary {
+            display: block;
+            background: transparent;
+            color: var(--accent);
+            text-align: center;
+            margin-top: 16px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+        }
+
+        .btn-secondary:hover {
+            text-decoration: underline;
+        }
+
+        .logo-area {
+            text-align: center;
+            margin: 40px 0;
+        }
+
+        .logo-circle {
+            width: 60px;
+            height: 60px;
+            border: 2px solid var(--accent);
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 24px;
+            box-shadow: 0 0 20px var(--accent-dim);
+        }
+
+        .error-message {
+            background: rgba(255, 75, 75, 0.1);
+            border: 1px solid var(--error);
+            color: var(--error);
+            padding: 12px;
+            border-radius: var(--radius);
+            margin-bottom: 16px;
+            font-size: 12px;
+        }
+
+        .links-row {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="logo-area">
+            <div class="logo-circle">✨</div>
+            <h2 style="margin-top: 15px;">STUDIO.</h2>
+        </div>
+
+        <h1>Acesso profissional</h1>
+        <p>Informe o codigo fornecido pelo studio para continuar o cadastro.</p>
+
+        {% if error %}
+            <div class="error-message">{{ error }}</div>
+        {% endif %}
+
+        <form method="post" action="">
+            {% csrf_token %}
+            <input type="text" name="code" placeholder="Codigo de acesso" autocomplete="off" required>
+            <button type="submit" class="btn-primary">Confirmar</button>
+        </form>
+
+        <div class="links-row">
+            <a href="/accounts/login/" class="btn-secondary">Voltar ao login</a>
+            <a href="/accounts/cadastro/" class="btn-secondary">Sou cliente</a>
+        </div>
+    </div>
+</body>
+</html>

@@ -11,9 +11,20 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
 from pathlib import Path
+import os
+import shutil
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# SQLite fora do OneDrive evita "database is locked" durante migrate/runserver
+DB_DIR = Path(os.environ.get('LOCALAPPDATA', BASE_DIR)) / 'AgentamentoSystem'
+DB_DIR.mkdir(parents=True, exist_ok=True)
+DB_PATH = DB_DIR / 'db.sqlite3'
+LEGACY_DB_PATH = BASE_DIR / 'db.sqlite3'
+
+if LEGACY_DB_PATH.exists() and not DB_PATH.exists():
+    shutil.copy2(LEGACY_DB_PATH, DB_PATH)
 
 
 # Quick-start development settings - unsuitable for production
@@ -25,8 +36,15 @@ SECRET_KEY = 'django-insecure-!u!(7_xk&ulj@o(@ki8wm-mh^*)k$^ss*b-1=cc6*etw=#h*aw
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '.trycloudflare.com',]
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '.trycloudflare.com']
 
+# Origens HTTPS permitidas para POST (login, cadastro, agendamento via tunel Cloudflare)
+CSRF_TRUSTED_ORIGINS = [
+    'https://*.trycloudflare.com',
+]
+
+# Tunel Cloudflare termina em HTTPS; Django recebe HTTP em localhost
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # Application definition
 
@@ -80,7 +98,10 @@ WSGI_APPLICATION = 'AgentamentoSystem.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'NAME': DB_PATH,
+        'OPTIONS': {
+            'timeout': 30,
+        },
     }
 }
 

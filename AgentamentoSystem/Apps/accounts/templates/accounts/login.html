@@ -149,22 +149,32 @@
         <p>Entre para agendar seu tratamento exclusivo.</p>
 
         <div class="error-message" id="login-error"></div>
+        {% csrf_token %}
 
         <input type="email" id="login-email" placeholder="E-mail">
         <input type="password" id="login-password" placeholder="Senha">
 
         <button class="btn-primary" onclick="handleLogin()">Login</button>
         <a href="/accounts/cadastro/" class="btn-secondary">Não tem conta? <span style="color: var(--accent);">Criar</span></a>
+        <a href="/accounts/profissional/codigo/" class="btn-secondary">Sou profissional</a>
     </div>
 
     <script>
-        // Usuário de teste
-        const adminUser = {
-            email: 'admin@admin',
-            password: 'admin'
-        };
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
 
-        // Login
         function handleLogin() {
             const email = document.getElementById('login-email').value.trim();
             const password = document.getElementById('login-password').value.trim();
@@ -175,12 +185,24 @@
                 return;
             }
 
-            if (email === Client.object.email && password === adminUser.password) {
-                localStorage.setItem('userEmail', email);
-                window.location.href = '/appointments/selectDay/';
-            } else {
-                showError(errorEl, 'E-mail ou senha incorretos');
-            }
+            fetch('/accounts/login/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken'),
+                },
+                body: JSON.stringify({ email, password }),
+            })
+                .then((response) => response.json())
+                .then((data) => {
+                    if (data.success) {
+                        localStorage.setItem('userEmail', data.email);
+                        window.location.href = '/appointments/selectDay/';
+                    } else {
+                        showError(errorEl, data.error || 'E-mail ou senha incorretos');
+                    }
+                })
+                .catch(() => showError(errorEl, 'Erro ao fazer login'));
         }
 
         function showError(element, message, show = true) {

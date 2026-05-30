@@ -161,6 +161,20 @@
         .error-message.show {
             display: block;
         }
+
+        .mode-pill {
+            display: inline-flex;
+            align-items: center;
+            min-height: 30px;
+            padding: 6px 10px;
+            border: 1px solid rgba(57, 255, 20, 0.25);
+            border-radius: 999px;
+            background: var(--accent-dim);
+            color: var(--accent);
+            font-size: 12px;
+            font-weight: 700;
+            margin-bottom: 14px;
+        }
     </style>
 </head>
 <body>
@@ -172,7 +186,8 @@
             <h2 style="margin-top: 15px;">STUDIO.</h2>
         </div>
 
-        <h1>Criar Conta</h1>
+    
+        <h1>{% if account_type == 'profissional' %}Criar Conta Profissional{% else %}Criar Conta{% endif %}</h1>
         <p>Preencha seus dados para começar.</p>
 
         <div class="error-message" id="register-error"></div>
@@ -239,14 +254,16 @@
                     name: name,
                     email: email,
                     phone: phone,
-                    password: password
+                    password: password,
+                    accountType: '{{ account_type }}',
+                    professionalCode: '{{ professional_code_value }}'
                 })
             })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
                     alert(data.message);
-                    window.location.href = '/accounts/login/';
+                    window.location.href = data.next_url || '/accounts/login/';
                 } else {
                     showError(errorEl, data.error);
                 }

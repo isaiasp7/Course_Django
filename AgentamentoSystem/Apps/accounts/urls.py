@@ -22,5 +22,15 @@ urlpatterns = [
         views.register,
         name='cadastro'
     ),
+    path(
+        'profissional/codigo/',
+        views.professional_code,
+        name='professional_code'
+    ),
+    path(
+        'profissional/indisponibilidade/',
+        views.professional_unavailable_days,
+        name='professional_unavailable_days'
+    ),
 
 ]
