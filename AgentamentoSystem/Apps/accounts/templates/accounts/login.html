@@ -175,7 +175,7 @@
                 return;
             }
 
-            if (email === adminUser.email && password === adminUser.password) {
+            if (email === Client.object.email && password === adminUser.password) {
                 localStorage.setItem('userEmail', email);
                 window.location.href = '/appointments/selectDay/';
             } else {

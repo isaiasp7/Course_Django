@@ -182,7 +182,7 @@
                 <input type="text" id="register-name" placeholder="Nome completo" autocomplete="name" name="nome">
                 <input type="email" id="register-email" placeholder="E-mail" autocomplete="email" name="email">
                 <input type="tel" id="register-phone" placeholder="(11) 99999-9999" autocomplete="tel" name="numero">
-        <!--Salvar posteriormente-->
+
                 <input type="password" id="register-password" placeholder="Senha" autocomplete="new-password" name="senha">
                 <input type="password" id="register-confirm-password" placeholder="Confirmar senha" autocomplete="new-password">
 
@@ -228,7 +228,7 @@
                 showError(errorEl, 'Você deve aceitar os termos e condições');
                 return;
             }
-            // Enviar dados para o Django via POST
+            //Enviar dados para o Django via POST
             fetch('/accounts/cadastro/', {
                 method: 'POST',
                 headers: {
@@ -256,7 +256,6 @@
                 console.error('Error:', error);
             });
         }
-
         function showError(element, message, show = true) {
             if (show) {
                 element.textContent = message;

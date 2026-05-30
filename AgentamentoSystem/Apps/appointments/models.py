@@ -1,11 +1,12 @@
 from django.db import models
-from Apps.accounts.models import Cliente
+from Apps.accounts.models import Cliente, Profissional
 
 # Create your models here.
-class Agenta(models.Model):
+class Agenda(models.Model):
     data = models.DateField(null=False)
     hora = models.DateTimeField(null=False)
     servicoFK = models.ForeignKey(Cliente,null=False,on_delete=models.CASCADE)
+    profissionalFk = models.ForeignKey(Profissional,null=False,on_delete=models.CASCADE)
 
     def __str__(self):
         return f"{self.data} - {self.hora}"

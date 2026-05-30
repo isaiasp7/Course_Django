@@ -4,9 +4,12 @@ from .models import Cliente
 import json
 
 def login(request):
-    userClient = Cliente.objects.all()
-    return render(request, 'accounts/login.html', {'userClient': userClient})
-
+    return render(request, 'accounts/login.html')
+def validateLogin(request){
+    if request.method=='POST':
+        return Cliente.objects.filter(email=email, senha=senha).exists()?
+    
+}
 def profile(request):
     return render(request, 'accounts/profile.html')
 
@@ -40,6 +43,7 @@ def register(request):
             )
 
             return JsonResponse({'success': True, 'message': f'Cadastro realizado com sucesso! Bem-vindo, {nome}!'})
+          
 
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)}, status=500)

@@ -1,0 +1,734 @@
+:root {
+    --bg-color: #0a0a0a;
+    --card-bg: #161616;
+    --card-elevated: #1d1d1d;
+    --surface-soft: #111111;
+    --line: #282828;
+    --line-strong: #333333;
+    --accent: #39ff14;
+    --accent-dim: rgba(57, 255, 20, 0.1);
+    --accent-glow: rgba(57, 255, 20, 0.22);
+    --text-main: #ffffff;
+    --text-dim: #888888;
+    --text-muted: #5f5f5f;
+    --error: #ff4b4b;
+    --error-dim: rgba(255, 75, 75, 0.12);
+    --warning: #ffb84d;
+    --radius: 12px;
+    --radius-sm: 8px;
+    --shadow-card: 0 18px 45px rgba(0, 0, 0, 0.32);
+    --transition: 180ms ease;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html {
+    min-width: 320px;
+    background: var(--bg-color);
+}
+
+body {
+    min-height: 100vh;
+    margin: 0;
+    background:
+        radial-gradient(circle at 50% -20%, rgba(57, 255, 20, 0.08), transparent 34rem),
+        var(--bg-color);
+    color: var(--text-main);
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    line-height: 1.45;
+}
+
+button {
+    font: inherit;
+}
+
+.dashboard-shell {
+    width: min(100%, 1120px);
+    min-height: 100vh;
+    margin: 0 auto;
+    padding: 20px 16px 32px;
+}
+
+.dashboard-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 30px;
+}
+
+.brand,
+.profile-button {
+    min-height: 44px;
+}
+
+.brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--text-main);
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: 0;
+    text-decoration: none;
+}
+
+.brand-mark {
+    width: 34px;
+    height: 34px;
+    border: 2px solid var(--accent);
+    border-radius: 50%;
+    box-shadow: 0 0 20px var(--accent-dim);
+}
+
+.profile-button {
+    width: 44px;
+    border: 1px solid var(--line);
+    border-radius: 50%;
+    background: var(--card-bg);
+    color: var(--text-main);
+    cursor: pointer;
+    transition: border-color var(--transition), transform var(--transition), background var(--transition);
+}
+
+.profile-button:active {
+    transform: scale(0.96);
+}
+
+.profile-initials {
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.welcome-block {
+    margin-bottom: 18px;
+}
+
+.eyebrow,
+.section-kicker {
+    margin: 0 0 6px;
+    color: var(--accent);
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+h1,
+h2,
+p {
+    margin-top: 0;
+}
+
+h1 {
+    max-width: 12ch;
+    margin-bottom: 8px;
+    font-size: clamp(28px, 9vw, 42px);
+    line-height: 1;
+    letter-spacing: 0;
+}
+
+h2 {
+    margin-bottom: 0;
+    font-size: 18px;
+    line-height: 1.15;
+    letter-spacing: 0;
+}
+
+.welcome-copy,
+.panel-copy,
+.service-name,
+.confirm-modal p {
+    color: var(--text-dim);
+    font-size: 14px;
+}
+
+.welcome-copy {
+    max-width: 32rem;
+    margin-bottom: 0;
+}
+
+.appointment-card,
+.panel {
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: linear-gradient(180deg, var(--card-elevated), var(--card-bg));
+    box-shadow: var(--shadow-card);
+}
+
+.appointment-card {
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 16px;
+    padding: 18px;
+    background:
+        linear-gradient(135deg, rgba(57, 255, 20, 0.08), transparent 38%),
+        linear-gradient(180deg, #1d1d1d, var(--card-bg));
+}
+
+.appointment-card::before {
+    position: absolute;
+    inset: 0 0 auto;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent), transparent);
+    content: "";
+}
+
+.appointment-card__topline,
+.appointment-card__main,
+.section-heading {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 14px;
+}
+
+.appointment-card__topline {
+    align-items: center;
+    margin-bottom: 18px;
+}
+
+.appointment-card__main {
+    display: grid;
+    grid-template-columns: 104px minmax(0, 1fr);
+    align-items: stretch;
+    gap: 14px;
+    margin-bottom: 18px;
+}
+
+.service-name {
+    margin: 7px 0 0;
+}
+
+.appointment-card__hint {
+    margin: 0;
+    color: var(--text-dim);
+    font-size: 13px;
+}
+
+.appointment-date-badge {
+    display: grid;
+    align-content: center;
+    justify-items: center;
+    min-height: 116px;
+    padding: 14px 10px;
+    border: 1px solid rgba(57, 255, 20, 0.22);
+    border-radius: var(--radius);
+    background: #0f0f0f;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.02);
+}
+
+.appointment-date-badge span {
+    color: var(--text-dim);
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.appointment-date-badge strong {
+    display: block;
+    margin-top: 8px;
+    color: var(--accent);
+    font-size: 28px;
+    line-height: 1;
+}
+
+.appointment-card__identity {
+    display: flex;
+    min-width: 0;
+    padding: 14px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: rgba(255, 255, 255, 0.025);
+    flex-direction: column;
+    justify-content: center;
+}
+
+.appointment-label {
+    margin-bottom: 6px;
+    color: var(--text-muted);
+    font-size: 12px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.status-pill,
+.live-badge {
+    display: inline-flex;
+    align-items: center;
+    min-height: 30px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.status-pill {
+    padding: 7px 10px;
+    border: 1px solid transparent;
+}
+
+.status-pill::before {
+    width: 7px;
+    height: 7px;
+    margin-right: 7px;
+    border-radius: 50%;
+    content: "";
+}
+
+.status-pill.is-confirmed {
+    border-color: rgba(57, 255, 20, 0.26);
+    background: var(--accent-dim);
+    color: var(--accent);
+}
+
+.status-pill.is-confirmed::before {
+    background: var(--accent);
+    box-shadow: 0 0 12px var(--accent-glow);
+}
+
+.status-pill.is-canceled {
+    border-color: rgba(255, 75, 75, 0.32);
+    background: var(--error-dim);
+    color: var(--error);
+}
+
+.status-pill.is-canceled::before {
+    background: var(--error);
+}
+
+.appointment-details {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    margin: 0;
+}
+
+.appointment-details div {
+    min-height: 64px;
+    padding: 11px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    background: rgba(255, 255, 255, 0.02);
+}
+
+dt,
+dd {
+    margin: 0;
+    font-size: 13px;
+}
+
+dt {
+    color: var(--text-dim);
+}
+
+dd {
+    color: var(--text-main);
+    font-weight: 700;
+    text-align: left;
+}
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+}
+
+.panel {
+    min-width: 0;
+    padding: 16px;
+}
+
+.section-heading {
+    align-items: center;
+    margin-bottom: 14px;
+}
+
+.section-heading > div {
+    min-width: 0;
+}
+
+.reschedule-panel,
+.actions-panel {
+    min-width: 0;
+}
+
+.reschedule-panel .section-heading,
+.actions-panel .section-heading {
+    align-items: flex-start;
+}
+
+.live-badge {
+    flex: 0 0 auto;
+    padding: 6px 9px;
+    background: #242424;
+    color: var(--accent);
+}
+
+.slot-scroller {
+    display: grid;
+    grid-auto-columns: clamp(136px, 68vw, 172px);
+    grid-auto-flow: column;
+    gap: 10px;
+    margin: 0 -16px 16px;
+    padding: 0 16px 4px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+    scroll-snap-type: x mandatory;
+}
+
+.slot-scroller::-webkit-scrollbar {
+    display: none;
+}
+
+.slot-card {
+    min-width: 0;
+    min-height: 104px;
+    padding: 14px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--surface-soft);
+    color: var(--text-main);
+    text-align: left;
+    cursor: pointer;
+    scroll-snap-align: start;
+    transition: border-color var(--transition), background var(--transition), transform var(--transition);
+}
+
+.slot-card:active {
+    transform: translateY(1px);
+}
+
+.slot-card.is-selected {
+    border-color: var(--accent);
+    background: var(--accent-dim);
+}
+
+.slot-card__date,
+.slot-card__meta {
+    display: block;
+    color: var(--text-dim);
+    font-size: 12px;
+}
+
+.slot-card__time {
+    display: block;
+    margin: 8px 0 5px;
+    color: var(--text-main);
+    font-size: 22px;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 50px;
+    padding: 14px 16px;
+    border-radius: var(--radius);
+    border: 1px solid transparent;
+    font-weight: 800;
+    cursor: pointer;
+    transition: background var(--transition), border-color var(--transition), box-shadow var(--transition), transform var(--transition), color var(--transition);
+}
+
+.button:active {
+    transform: translateY(1px);
+}
+
+.button:disabled {
+    background: #222222;
+    color: #555555;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.button--primary {
+    background: var(--accent);
+    color: #050505;
+}
+
+.button--secondary {
+    border-color: var(--line-strong);
+    background: #101010;
+    color: var(--accent);
+}
+
+.button--danger {
+    border-color: rgba(255, 75, 75, 0.3);
+    background: var(--error-dim);
+    color: var(--error);
+}
+
+.action-stack {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+}
+
+.panel-copy {
+    margin-bottom: 16px;
+}
+
+.notifications-panel {
+    padding-bottom: 8px;
+}
+
+.notifications-panel--priority {
+    margin-bottom: 16px;
+}
+
+.notification-count {
+    display: inline-flex;
+    align-items: center;
+    min-height: 30px;
+    padding: 6px 9px;
+    border: 1px solid rgba(57, 255, 20, 0.2);
+    border-radius: 999px;
+    background: var(--accent-dim);
+    color: var(--accent);
+    font-size: 12px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.notification-list {
+    display: grid;
+    gap: 4px;
+}
+
+.notification-item {
+    display: grid;
+    grid-template-columns: 36px 1fr;
+    gap: 10px;
+    padding: 12px 0;
+    border-top: 1px solid var(--line);
+}
+
+.notification-item:first-child {
+    border-top: 0;
+}
+
+.notification-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--accent-dim);
+    color: var(--accent);
+    font-size: 12px;
+    font-weight: 900;
+}
+
+.notification-icon::before {
+    content: "OK";
+}
+
+.notification-icon--info {
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--text-main);
+}
+
+.notification-icon--info::before {
+    content: "i";
+}
+
+.notification-icon--warning {
+    background: rgba(255, 184, 77, 0.12);
+    color: var(--warning);
+}
+
+.notification-icon--warning::before {
+    content: "!";
+}
+
+.notification-text {
+    margin: 0 0 3px;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.notification-time {
+    color: var(--text-dim);
+    font-size: 12px;
+}
+
+.modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 20;
+    display: grid;
+    align-items: end;
+    padding: 16px;
+    background: rgba(0, 0, 0, 0.68);
+}
+
+.modal-backdrop[hidden],
+.toast[hidden] {
+    display: none;
+}
+
+.confirm-modal {
+    width: min(100%, 420px);
+    margin: 0 auto;
+    padding: 18px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--card-bg);
+    box-shadow: var(--shadow-card);
+}
+
+.confirm-modal h2 {
+    margin-bottom: 8px;
+}
+
+.confirm-modal p:not(.section-kicker) {
+    margin-bottom: 18px;
+}
+
+.modal-actions {
+    display: grid;
+    gap: 10px;
+}
+
+.toast {
+    position: fixed;
+    right: 16px;
+    bottom: 16px;
+    left: 16px;
+    z-index: 30;
+    padding: 14px 16px;
+    border: 1px solid rgba(57, 255, 20, 0.26);
+    border-radius: var(--radius);
+    background: #101010;
+    color: var(--text-main);
+    box-shadow: var(--shadow-card);
+    font-size: 14px;
+    font-weight: 700;
+    text-align: center;
+}
+
+@media (hover: hover) {
+    .profile-button:hover,
+    .slot-card:hover,
+    .button--secondary:hover {
+        border-color: var(--accent);
+    }
+
+    .button--primary:hover {
+        box-shadow: 0 0 22px var(--accent-glow);
+    }
+
+    .button--danger:hover {
+        border-color: var(--error);
+    }
+}
+
+@media (min-width: 560px) {
+    .dashboard-shell {
+        padding: 28px 24px 44px;
+    }
+
+    .dashboard-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        align-items: stretch;
+    }
+
+    .reschedule-panel {
+        grid-column: 1 / -1;
+    }
+
+    .slot-scroller {
+        grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
+        grid-auto-flow: row;
+        grid-auto-columns: initial;
+        margin: 0 0 16px;
+        padding: 0;
+        overflow: visible;
+        scroll-snap-type: none;
+    }
+
+    .slot-card {
+        scroll-snap-align: none;
+    }
+
+    .action-stack {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .appointment-details div {
+        display: block;
+    }
+
+    dd {
+        margin-top: 5px;
+    }
+
+    .modal-actions {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (min-width: 880px) {
+    body {
+        align-items: start;
+    }
+
+    .dashboard-shell {
+        padding-top: 36px;
+    }
+
+    .welcome-block {
+        margin-bottom: 24px;
+    }
+
+    h1 {
+        max-width: none;
+    }
+
+    .appointment-card {
+        padding: 24px;
+    }
+
+    .appointment-card__main {
+        grid-template-columns: 128px minmax(0, 1fr);
+    }
+
+    .appointment-date-badge {
+        min-height: 128px;
+    }
+
+    .appointment-date-badge strong {
+        font-size: 34px;
+    }
+
+    .dashboard-grid {
+        grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
+        align-items: start;
+    }
+
+    .reschedule-panel {
+        grid-column: auto;
+    }
+
+    .actions-panel {
+        display: flex;
+        min-height: 100%;
+        flex-direction: column;
+    }
+
+    .actions-panel .action-stack {
+        margin-top: auto;
+    }
+
+    .slot-scroller {
+        grid-template-columns: repeat(auto-fit, minmax(138px, 1fr));
+    }
+}

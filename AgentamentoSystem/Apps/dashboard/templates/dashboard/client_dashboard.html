@@ -1,0 +1,139 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard do Cliente - STUDIO.</title>
+    <link rel="stylesheet" href="{% static 'dashboard/client_dashboard.css' %}">
+    <script src="{% static 'dashboard/client_dashboard.js' %}" defer></script>
+</head>
+<body>
+    <main class="dashboard-shell" data-js="dashboard">
+        <header class="dashboard-header" aria-label="Resumo da conta">
+            <a class="brand" href="/" aria-label="Voltar para o inicio">
+                <span class="brand-mark" aria-hidden="true"></span>
+                <span>STUDIO.</span>
+            </a>
+
+            <button class="profile-button" type="button" aria-label="Abrir perfil">
+                <span class="profile-initials">IC</span>
+            </button>
+        </header>
+
+        <section class="welcome-block" aria-labelledby="dashboard-title">
+            <p class="eyebrow">Dashboard</p>
+            <h1 id="dashboard-title">Seu proximo atendimento</h1>
+            <p class="welcome-copy">Acompanhe, remarque ou cancele seu horario com poucos taps.</p>
+        </section>
+
+        <section class="panel notifications-panel notifications-panel--priority" aria-labelledby="notifications-title">
+            <div class="section-heading">
+                <div>
+                    <p class="section-kicker">Notificacoes</p>
+                    <h2 id="notifications-title">Atualizacoes recentes</h2>
+                </div>
+                <span class="notification-count" data-js="notification-count">3 novas</span>
+            </div>
+
+            <div class="notification-list" data-js="notification-list" aria-live="polite"></div>
+        </section>
+
+        <section class="appointment-card" aria-labelledby="next-appointment-title">
+            <div class="appointment-card__topline">
+                <div>
+                    <p class="section-kicker">Proximo atendimento</p>
+                    <p class="appointment-card__hint">Tudo pronto para sua visita</p>
+                </div>
+                <span class="status-pill" data-js="appointment-status">Confirmado</span>
+            </div>
+
+            <div class="appointment-card__main">
+                <div class="appointment-date-badge" aria-label="Data e horario do atendimento">
+                    <span data-js="appointment-date">27/05</span>
+                    <strong data-js="appointment-hour">14:30</strong>
+                </div>
+
+                <div class="appointment-card__identity">
+                    <span class="appointment-label">Profissional</span>
+                    <h2 id="next-appointment-title" data-js="professional-name">Dr. Joao</h2>
+                    <p class="service-name" data-js="service-name">Corte e finalizacao</p>
+                </div>
+            </div>
+
+            <dl class="appointment-details" aria-label="Detalhes do agendamento">
+                <div>
+                    <dt>Duracao</dt>
+                    <dd data-js="appointment-duration">30 minutos</dd>
+                </div>
+                <div>
+                    <dt>Modalidade</dt>
+                    <dd data-js="appointment-location">Presencial</dd>
+                </div>
+                <div>
+                    <dt>Unidade</dt>
+                    <dd data-js="appointment-unit">Studio Centro</dd>
+                </div>
+            </dl>
+        </section>
+
+        <div class="dashboard-grid">
+            <section class="panel reschedule-panel" aria-labelledby="reschedule-title">
+                <div class="section-heading">
+                    <div>
+                        <p class="section-kicker">Reagendamento rapido</p>
+                        <h2 id="reschedule-title">Escolha um novo horario</h2>
+                    </div>
+                    <span class="live-badge">Live</span>
+                </div>
+
+                <div class="slot-scroller" data-js="slot-list" aria-label="Horarios disponiveis"></div>
+
+                <button class="button button--primary" type="button" data-js="reschedule-button" disabled>
+                    Reagendar
+                </button>
+            </section>
+
+            <section class="panel actions-panel" aria-labelledby="actions-title">
+                <div class="section-heading">
+                    <div>
+                        <p class="section-kicker">Controle</p>
+                        <h2 id="actions-title">Cancelar ou remarcar</h2>
+                    </div>
+                </div>
+
+                <p class="panel-copy">Use estas acoes quando precisar alterar seu atendimento.</p>
+
+                <div class="action-stack">
+                    <button class="button button--secondary" type="button" data-js="focus-reschedule">
+                        Remarcar horario
+                    </button>
+                    <button class="button button--danger" type="button" data-js="open-cancel">
+                        Cancelar atendimento
+                    </button>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <div class="modal-backdrop" data-js="cancel-modal" hidden>
+        <section class="confirm-modal" role="dialog" aria-modal="true" aria-labelledby="cancel-title">
+            <p class="section-kicker">Confirmacao</p>
+            <h2 id="cancel-title">Cancelar atendimento?</h2>
+            <p>Esta acao muda o status do seu agendamento para cancelado.</p>
+
+            <div class="modal-actions">
+                <button class="button button--secondary" type="button" data-js="close-cancel">
+                    Manter horario
+                </button>
+                <button class="button button--danger" type="button" data-js="confirm-cancel">
+                    Confirmar cancelamento
+                </button>
+            </div>
+        </section>
+    </div>
+
+    <div class="toast" data-js="toast" role="status" aria-live="polite" hidden></div>
+</body>
+</html>

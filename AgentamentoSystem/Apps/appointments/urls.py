@@ -22,5 +22,6 @@ urlpatterns = [
         views.confirm,
         name='confirmAppoint'
     ),
+    
 
 ]
