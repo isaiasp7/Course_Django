@@ -1,12 +1,7 @@
 from django.contrib import admin
-from .models import Cliente, Profissional
+from .models import Cliente
 
 
 @admin.register(Cliente)
 class ClienteAdmin(admin.ModelAdmin):
-    list_display = ('id', 'nome', 'email', 'numero')
-
-
-@admin.register(Profissional)
-class ProfissionalAdmin(admin.ModelAdmin):
-    list_display = ('id', 'nome', 'email', 'numero')
+    list_display = ('id', 'nome', 'email', 'numero', 'tipo')

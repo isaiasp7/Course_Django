@@ -1,6 +1,6 @@
 from django.db import models
 
-from Apps.accounts.models import Cliente, Profissional
+from Apps.accounts.models import Cliente
 
 
 class Servicos(models.Model):
@@ -25,7 +25,7 @@ class Agenda(models.Model):
         related_name='agendamentos',
     )
     profissionalFk = models.ForeignKey(
-        Profissional,
+        Cliente,
         null=False,
         on_delete=models.CASCADE,
         related_name='agendamentos_profissional',

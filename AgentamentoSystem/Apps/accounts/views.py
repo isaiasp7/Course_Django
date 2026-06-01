@@ -4,7 +4,7 @@ from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
 
-from .models import Cliente, Profissional
+from .models import Cliente
 
 
 PROFESSIONAL_ACCESS_CODE = 'STUDIO-PRO-2026'
@@ -143,17 +143,18 @@ def create_professional(nome, email, numero, senha, submitted_code):
             status=403,
         )
 
-    if Profissional.objects.filter(email=email).exists():
+    if Cliente.objects.filter(email=email, tipo='profissional').exists():
         return JsonResponse(
             {'success': False, 'error': 'Este email ja esta cadastrado como profissional'},
             status=400,
         )
 
-    profissional = Profissional.objects.create(
+    profissional = Cliente.objects.create(
         nome=nome,
         email=email,
         numero=numero,
         senha=senha,
+        tipo = 'profissional'
     )
 
     return JsonResponse({

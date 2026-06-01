@@ -9,7 +9,7 @@ from django.views.decorators.http import require_http_methods
 
 from decimal import Decimal, InvalidOperation
 
-from Apps.accounts.models import Cliente, Profissional
+from Apps.accounts.models import Cliente
 from Apps.appointments.models import Agenda, AgendaServico, Servicos
 
 MESES_PT = {
@@ -138,7 +138,7 @@ def confirm(request):
             status=404,
         )
 
-    profissionais = list(Profissional.objects.all())
+    profissionais = list(Cliente.objects.filter(tipo='profissional'))
     if not profissionais:
         return JsonResponse(
             {'success': False, 'error': 'Nenhum profissional cadastrado no sistema.'},
