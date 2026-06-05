@@ -200,7 +200,8 @@
                 .then((data) => {
                     if (data.success) {
                         localStorage.setItem('userEmail', data.email);
-                        window.location.href = '/appointments/selectDay/';
+                        localStorage.setItem('userType', data.user_type || 'CLIENTE');
+                        window.location.href = data.next_url || '/appointments/selectDay/';
                     } else {
                         showError(errorEl, data.error || 'E-mail ou senha incorretos');
                     }

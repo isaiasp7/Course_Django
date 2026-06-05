@@ -187,8 +187,11 @@
         </div>
 
     
+        {% if account_type == 'profissional' %}
+            <span class="mode-pill">Tipo de usuario: profissional</span>
+        {% endif %}
         <h1>{% if account_type == 'profissional' %}Criar Conta Profissional{% else %}Criar Conta{% endif %}</h1>
-        <p>Preencha seus dados para começar.</p>
+        <p>{% if account_type == 'profissional' %}Cadastro liberado pelo codigo profissional. Ao salvar, seu tipo de user sera profissional.{% else %}Preencha seus dados para começar.{% endif %}</p>
 
         <div class="error-message" id="register-error"></div>
 
@@ -210,6 +213,9 @@
         </div>
 
         <button class="btn-primary" onclick="handleRegister()">Cadastrar</button>
+        {% if account_type != 'profissional' %}
+            <a href="/accounts/profissional/codigo/" class="btn-secondary">Sou profissional</a>
+        {% endif %}
         <a href="/accounts/login/" class="btn-secondary">Já tenho conta? <span style="color: var(--accent);">Entrar</span></a>
     </div>
 

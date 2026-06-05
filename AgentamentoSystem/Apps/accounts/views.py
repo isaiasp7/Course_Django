@@ -4,7 +4,7 @@ from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
 
-from .models import Cliente
+from .models import Cliente, TipoUsuario
 
 
 PROFESSIONAL_ACCESS_CODE = 'STUDIO-PRO-2026'
@@ -17,7 +17,17 @@ def login(request):
             email = data.get('email', '').strip()
             senha = data.get('password', '').strip()
             cliente = Cliente.objects.get(email=email, senha=senha)
-            return JsonResponse({'success': True, 'email': cliente.email})
+            next_url = (
+                '/dashboard/profissional/'
+                if cliente.tipo == TipoUsuario.PROFISSIONAL
+                else '/appointments/selectDay/'
+            )
+            return JsonResponse({
+                'success': True,
+                'email': cliente.email,
+                'user_type': cliente.tipo,
+                'next_url': next_url,
+            })
         except json.JSONDecodeError:
             return JsonResponse(
                 {'success': False, 'error': 'JSON invalido'},
@@ -143,7 +153,7 @@ def create_professional(nome, email, numero, senha, submitted_code):
             status=403,
         )
 
-    if Cliente.objects.filter(email=email, tipo='profissional').exists():
+    if Cliente.objects.filter(email=email, tipo=TipoUsuario.PROFISSIONAL).exists():
         return JsonResponse(
             {'success': False, 'error': 'Este email ja esta cadastrado como profissional'},
             status=400,
@@ -154,7 +164,7 @@ def create_professional(nome, email, numero, senha, submitted_code):
         email=email,
         numero=numero,
         senha=senha,
-        tipo = 'profissional'
+        tipo=TipoUsuario.PROFISSIONAL,
     )
 
     return JsonResponse({

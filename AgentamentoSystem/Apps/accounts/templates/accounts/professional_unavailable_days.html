@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Indisponibilidade - STUDIO</title>
+    <style>
+        :root {
+            --bg-color: #0A0A0A;
+            --card-bg: #161616;
+            --accent: #39FF14;
+            --accent-dim: rgba(57, 255, 20, 0.1);
+            --text-main: #FFFFFF;
+            --text-dim: #888888;
+            --radius: 12px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            padding: 24px;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 420px;
+        }
+
+        h1 {
+            font-size: 24px;
+            margin: 36px 0 8px;
+        }
+
+        p {
+            color: var(--text-dim);
+            font-size: 14px;
+            margin-bottom: 22px;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+            margin-bottom: 18px;
+        }
+
+        .day-label {
+            color: var(--text-dim);
+            font-size: 11px;
+            text-align: center;
+        }
+
+        .day-button {
+            aspect-ratio: 1;
+            border: 1px solid #333;
+            border-radius: 8px;
+            background: var(--card-bg);
+            color: var(--text-main);
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .day-button.selected {
+            border-color: var(--accent);
+            background: var(--accent-dim);
+            color: var(--accent);
+            font-weight: 800;
+        }
+
+        .summary {
+            min-height: 46px;
+            padding: 12px;
+            border: 1px solid #262626;
+            border-radius: var(--radius);
+            background: var(--card-bg);
+            color: var(--text-dim);
+            font-size: 13px;
+            margin-bottom: 14px;
+        }
+
+        .btn-primary {
+            width: 100%;
+            min-height: 50px;
+            border: 0;
+            border-radius: var(--radius);
+            background: var(--accent);
+            color: #050505;
+            font-weight: 800;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <main class="app-container">
+        <h1>Dias indisponiveis</h1>
+        <p>Selecione os dias em que voce nao podera trabalhar neste mes.</p>
+
+        <div class="calendar-grid" id="calendar-grid" aria-label="Calendario de indisponibilidade"></div>
+        <div class="summary" id="selected-summary">Nenhum dia selecionado.</div>
+
+        <button class="btn-primary" type="button" onclick="saveUnavailableDays()">Ir para o dashboard</button>
+    </main>
+
+    <script>
+        const selectedDays = new Set();
+        const weekDays = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'];
+
+        function renderCalendar() {
+            const grid = document.getElementById('calendar-grid');
+
+            weekDays.forEach((day) => {
+                const label = document.createElement('div');
+                label.className = 'day-label';
+                label.textContent = day;
+                grid.appendChild(label);
+            });
+
+            for (let day = 1; day <= 31; day += 1) {
+                const button = document.createElement('button');
+                button.className = 'day-button';
+                button.type = 'button';
+                button.textContent = day;
+                button.addEventListener('click', () => toggleDay(day, button));
+                grid.appendChild(button);
+            }
+        }
+
+        function toggleDay(day, button) {
+            if (selectedDays.has(day)) {
+                selectedDays.delete(day);
+                button.classList.remove('selected');
+            } else {
+                selectedDays.add(day);
+                button.classList.add('selected');
+            }
+
+            updateSummary();
+        }
+
+        function updateSummary() {
+            const summary = document.getElementById('selected-summary');
+            const days = Array.from(selectedDays).sort((a, b) => a - b);
+            summary.textContent = days.length
+                ? `Dias indisponiveis: ${days.join(', ')}`
+                : 'Nenhum dia selecionado.';
+        }
+
+        function saveUnavailableDays() {
+            localStorage.setItem('professional_unavailable_days', JSON.stringify(Array.from(selectedDays)));
+            window.location.href = '/dashboard/profissional/';
+        }
+
+        renderCalendar();
+    </script>
+</body>
+</html>
