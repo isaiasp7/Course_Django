@@ -14,8 +14,12 @@ class Servicos(models.Model):
     def __str__(self):
         return f"{self.nome}"
 
-
 class Agenda(models.Model):
+    class TipoStatus(models.TextChoices):
+        CONFIRMADO = 'CONFIRMADO', 'Confirmado'
+        CANCELADO = 'CANCELADO', 'Cancelado'
+        CONCLUIDO = 'CONCLUIDO', 'Concluido'
+
     data = models.DateField(null=False)
     hora = models.TimeField(null=False)
     clienteFk = models.ForeignKey(
@@ -29,6 +33,11 @@ class Agenda(models.Model):
         null=False,
         on_delete=models.CASCADE,
         related_name='agendamentos_profissional',
+    )
+    status = models.CharField(
+        max_length=20,
+        choices=TipoStatus.choices,
+        default=TipoStatus.CONFIRMADO,
     )
 
     def __str__(self):

@@ -130,12 +130,15 @@
                         <span class="job-hour">{{ trabalho.hora }}</span>
                     </div>
                     <p class="job-client">{{ trabalho.cliente }}</p>
-                    <p class="job-service">{{ trabalho.servico }}</p>
+                    <p class="job-service">{{ trabalho.servicos }}</p>
                 </article>
             {% empty %}
                 <p class="empty-state">Nenhum atendimento neste mes.</p>
             {% endfor %}
         </div>
     </main>
+    <script>
+    console.table('{{ trabalhos_mes }}');
+</script>
 </body>
 </html>

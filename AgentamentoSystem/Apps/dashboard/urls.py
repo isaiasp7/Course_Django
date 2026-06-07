@@ -8,4 +8,7 @@ app_name = 'dashboard'
 urlpatterns = [
     path('', views.client_dashboard, name='client_dashboard'),
     path('profissional/', views.professional_dashboard, name='professional_dashboard'),
+    path('remarcar/opcoes/', views.reschedule_options, name='reschedule_options'),
+    path('remarcar/', views.remarcar, name='remarcar'),
+    path('cancelar/', views.cancelar_atendimento, name='cancelar_atendimento'),
 ]

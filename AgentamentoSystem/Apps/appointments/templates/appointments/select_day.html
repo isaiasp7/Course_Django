@@ -135,6 +135,11 @@
             background: #0A0A0A;
         }
 
+        .day.fully-booked {
+            opacity: 0.35;
+            text-decoration: line-through;
+        }
+
         .day.selected {
             background: var(--accent);
             color: black;
@@ -201,26 +206,12 @@
             total: 0
         };
 
-        // Horários disponíveis (8-11h e 14-18h com intervalos de 30min)
-        const availableSlots = [
-            '08:00', '08:30', '09:00', '09:30', '10:00', '10:30', '11:00',
-            '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30', '18:00'
-        ];
-
-        // Dados mockados de horários ocupados por dia
-        // Um dia fica indisponível quando TODOS os horários estão ocupados
-        const bookedSlots = {
-            '5_may': ['08:00', '08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30', '18:00'],
-            '12_may': ['08:00', '08:30', '09:00'],
-            '15_may': ['14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30', '18:00'],
-            '3_june': ['08:00', '08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30', '18:00'],
-        };
+        const fullyBookedDays = new Set({{ fully_booked_days_json|safe }});
 
         // Verificar se um dia está completamente indisponível
         function isDayFullyBooked(day, month) {
             const dayKey = `${day}_${month}`;
-            const bookedForDay = bookedSlots[dayKey] || [];
-            return bookedForDay.length === availableSlots.length;
+            return fullyBookedDays.has(dayKey);
         }
 
         // Obter data atual e inicializar estado
@@ -244,21 +235,25 @@
             grid.innerHTML = '';
             const daysInMonth = state.month === 'may' ? 31 : 30;
             const today = new Date();
-            const isCurrentMonth =
-                (state.month === 'may' && today.getMonth() === 4) ||
-                (state.month === 'june' && today.getMonth() === 5);
+            today.setHours(0, 0, 0, 0);
+            const monthIndex = state.month === 'may' ? 4 : 5;
 
             for (let i = 1; i <= daysInMonth; i++) {
                 const dayEl = document.createElement('div');
                 dayEl.classList.add('day');
                 dayEl.innerText = i;
 
-                const isPast = isCurrentMonth && i < state.currentDay;
+                const dateToRender = new Date(state.year, monthIndex, i);
+                const isPast = dateToRender < today;
                 const isFullyBooked = isDayFullyBooked(i, state.month);
                 const isDisabled = isPast || isFullyBooked;
 
                 if (isDisabled) {
                     dayEl.classList.add('disabled');
+                    if (isFullyBooked) {
+                        dayEl.classList.add('fully-booked');
+                        dayEl.title = 'Todos os horarios deste dia estao ocupados';
+                    }
                 } else {
                     dayEl.onclick = () => selectDay(i, dayEl);
                 }

@@ -168,19 +168,11 @@
             total: 0
         };
 
-        // Horários disponíveis (8-11h e 14-18h com intervalos de 30min)
-        const availableSlots = [
-            '08:00', '08:30', '09:00', '09:30', '10:00', '10:30', '11:00',
-            '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30', '18:00'
-        ];
-
-        // Dados mockados de horários ocupados por dia
-        // Formato: { 'dia_mes': ['08:00', '08:30', ...] }
-        const bookedSlots = {
-            '5_may': ['08:00', '08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30', '18:00'],
-            '12_may': ['08:00', '08:30', '09:00'],
-            '15_may': ['14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30', '18:00'],
-            '3_june': ['08:00', '08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30', '18:00'],
+        const availableSlots = {{ available_slots_json|safe }};
+        const bookedSlots = {{ booked_slots_by_day_json|safe }};
+        const monthKeyByLabel = {
+            maio: 'may',
+            junho: 'june'
         };
 
         // Obter parâmetro da URL
@@ -189,23 +181,34 @@
             return params.get('date') || null;
         }
 
+        function getDayKey(dateLabel) {
+            const match = (dateLabel || '').trim().toLowerCase().match(/^(\d{1,2}) de ([a-zçãáéíóú]+)$/);
+            if (!match) {
+                return null;
+            }
+
+            const monthKey = monthKeyByLabel[match[2]];
+            return monthKey ? `${parseInt(match[1], 10)}_${monthKey}` : null;
+        }
+
         // Renderizar slots de horário
         function renderTimeSlots() {
             const grid = document.getElementById('slotsGrid');
             grid.innerHTML = '';
 
             const selectedDay = state.selectedDay;
-            const dayKey = selectedDay.replace(' de ', '_').toLowerCase();
+            const dayKey = getDayKey(selectedDay);
 
             for (let time of availableSlots) {
                 const slotEl = document.createElement('div');
                 slotEl.classList.add('slot');
                 slotEl.innerText = time;
 
-                const isBooked = bookedSlots[dayKey]?.includes(time);
+                const isBooked = dayKey ? bookedSlots[dayKey]?.includes(time) : false;
 
                 if (isBooked) {
                     slotEl.classList.add('booked');
+                    slotEl.title = 'Horario ja ocupado';
                 } else {
                     slotEl.onclick = () => selectSlot(time, slotEl);
                 }

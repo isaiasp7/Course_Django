@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
@@ -49,7 +49,7 @@
             margin: 20px 0;
         }
 
-        /* Componentes Genéricos */
+        /* Componentes Genericos */
         h1 { font-size: 24px; font-weight: 700; margin-bottom: 8px; }
         h2 { font-size: 28px; font-weight: 700; }
         p { color: var(--text-dim); font-size: 14px; margin-bottom: 24px; }
@@ -182,16 +182,15 @@
     <div class="app-container">
         <!-- CADASTRO -->
         <div class="logo-area">
-            <div class="logo-circle">✨</div>
+            <div class="logo-circle"></div>
             <h2 style="margin-top: 15px;">STUDIO.</h2>
         </div>
 
-    
         {% if account_type == 'profissional' %}
             <span class="mode-pill">Tipo de usuario: profissional</span>
         {% endif %}
         <h1>{% if account_type == 'profissional' %}Criar Conta Profissional{% else %}Criar Conta{% endif %}</h1>
-        <p>{% if account_type == 'profissional' %}Cadastro liberado pelo codigo profissional. Ao salvar, seu tipo de user sera profissional.{% else %}Preencha seus dados para começar.{% endif %}</p>
+        <p>{% if account_type == 'profissional' %}Cadastro liberado pelo codigo profissional. Ao salvar, seu tipo de user sera profissional.{% else %}Preencha seus dados para comecar.{% endif %}</p>
 
         <div class="error-message" id="register-error"></div>
 
@@ -208,15 +207,15 @@
         <div class="checkbox-container">
             <input type="checkbox" id="register-terms">
             <label for="register-terms">
-                Li e aceito os <span>Termos de Uso</span> e <span>Política de Privacidade</span>
+                Li e aceito os <span>Termos de Uso</span> e <span>PolÃ­tica de Privacidade</span>
             </label>
         </div>
 
         <button class="btn-primary" onclick="handleRegister()">Cadastrar</button>
         {% if account_type != 'profissional' %}
-            <a href="/accounts/profissional/codigo/" class="btn-secondary">Sou profissional</a>
+            <a href="/accounts/profissional/codigo/?nav={{ guest_nav_token }}" class="btn-secondary">Sou profissional</a>
         {% endif %}
-        <a href="/accounts/login/" class="btn-secondary">Já tenho conta? <span style="color: var(--accent);">Entrar</span></a>
+        <a href="/accounts/login/" class="btn-secondary">Ja tenho conta? <span style="color: var(--accent);">Entrar</span></a>
     </div>
 
     <script>
@@ -246,7 +245,7 @@
             }
 
             if (!termsAccepted) {
-                showError(errorEl, 'Você deve aceitar os termos e condições');
+                showError(errorEl, 'Voce deve aceitar os termos e as condições para concluir a inscrição');
                 return;
             }
             //Enviar dados para o Django via POST
@@ -261,8 +260,7 @@
                     email: email,
                     phone: phone,
                     password: password,
-                    accountType: '{{ account_type }}',
-                    professionalCode: '{{ professional_code_value }}'
+                    accountType: '{{ account_type|default:"cliente" }}'
                 })
             })
             .then(response => response.json())
@@ -306,3 +304,4 @@
     </script>
 </body>
 </html>
+

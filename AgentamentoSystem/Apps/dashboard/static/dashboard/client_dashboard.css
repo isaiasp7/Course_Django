@@ -299,6 +299,16 @@ h2 {
     background: var(--error);
 }
 
+.status-pill.is-empty {
+    border-color: var(--line-strong);
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--text-dim);
+}
+
+.status-pill.is-empty::before {
+    background: var(--text-muted);
+}
+
 .appointment-details {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -330,7 +340,8 @@ dd {
     text-align: left;
 }
 
-.dashboard-grid {
+.dashboard-grid,
+.dashboard-grid--control-only {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     gap: 16px;
@@ -350,14 +361,20 @@ dd {
     min-width: 0;
 }
 
-.reschedule-panel,
 .actions-panel {
     min-width: 0;
 }
 
-.reschedule-panel .section-heading,
 .actions-panel .section-heading {
     align-items: flex-start;
+}
+
+.actions-panel--full {
+    width: 100%;
+}
+
+.actions-panel--full .panel-copy {
+    max-width: 640px;
 }
 
 .live-badge {
@@ -421,6 +438,15 @@ dd {
     font-size: 22px;
     font-weight: 800;
     line-height: 1;
+}
+
+.slot-empty {
+    margin: 0;
+    padding: 14px;
+    border: 1px dashed var(--line-strong);
+    border-radius: var(--radius);
+    color: var(--text-dim);
+    font-size: 14px;
 }
 
 .button {
@@ -593,6 +619,52 @@ dd {
     margin-bottom: 18px;
 }
 
+.reschedule-modal-panel {
+    width: min(100%, 460px);
+    max-height: min(86vh, 560px);
+    display: flex;
+    flex-direction: column;
+}
+
+.reschedule-modal-panel .slot-scroller {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-auto-flow: row;
+    grid-auto-columns: initial;
+    max-height: min(42vh, 280px);
+    margin: 12px 0;
+    padding: 0 4px 0 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scroll-snap-type: none;
+}
+
+.reschedule-modal-panel .slot-scroller::-webkit-scrollbar {
+    display: block;
+    width: 6px;
+}
+
+.reschedule-modal-panel .slot-scroller::-webkit-scrollbar-track {
+    background: var(--surface-soft);
+    border-radius: 999px;
+}
+
+.reschedule-modal-panel .slot-scroller::-webkit-scrollbar-thumb {
+    background: var(--line-strong);
+    border-radius: 999px;
+}
+
+.reschedule-modal-panel .slot-card {
+    min-height: 82px;
+    padding: 12px;
+    scroll-snap-align: none;
+}
+
+.reschedule-modal-panel .slot-card__time {
+    font-size: 20px;
+}
+
 .modal-actions {
     display: grid;
     gap: 10px;
@@ -641,8 +713,8 @@ dd {
         align-items: stretch;
     }
 
-    .reschedule-panel {
-        grid-column: 1 / -1;
+    .dashboard-grid--control-only {
+        grid-template-columns: minmax(0, 1fr);
     }
 
     .slot-scroller {
@@ -659,7 +731,8 @@ dd {
         scroll-snap-align: none;
     }
 
-    .action-stack {
+    .action-stack,
+    .actions-panel--full .action-stack {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
@@ -674,13 +747,15 @@ dd {
     .modal-actions {
         grid-template-columns: 1fr 1fr;
     }
+
+    .reschedule-modal-panel .slot-scroller {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        max-height: min(40vh, 300px);
+        margin: 14px 0;
+    }
 }
 
 @media (min-width: 880px) {
-    body {
-        align-items: start;
-    }
-
     .dashboard-shell {
         padding-top: 36px;
     }
@@ -714,8 +789,8 @@ dd {
         align-items: start;
     }
 
-    .reschedule-panel {
-        grid-column: auto;
+    .dashboard-grid--control-only {
+        grid-template-columns: minmax(0, 1fr);
     }
 
     .actions-panel {

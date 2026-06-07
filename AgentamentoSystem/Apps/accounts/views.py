@@ -1,13 +1,15 @@
-import json
+﻿import json
+import secrets
 
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
 
+from .middleware import SESSION_NAV_TOKEN, build_guest_url
 from .models import Cliente, TipoUsuario
 
-
 PROFESSIONAL_ACCESS_CODE = 'STUDIO-PRO-2026'
+SESSION_REGISTER_TYPE = 'tipo_cadastro'
 
 
 def login(request):
@@ -22,6 +24,10 @@ def login(request):
                 if cliente.tipo == TipoUsuario.PROFISSIONAL
                 else '/appointments/selectDay/'
             )
+            request.session['usuario_id'] = cliente.id
+            request.session['usuario_nome'] = cliente.nome
+            request.session['usuario_tipo'] = cliente.tipo
+            request.session.pop(SESSION_REGISTER_TYPE, None)
             return JsonResponse({
                 'success': True,
                 'email': cliente.email,
@@ -29,17 +35,14 @@ def login(request):
                 'next_url': next_url,
             })
         except json.JSONDecodeError:
-            return JsonResponse(
-                {'success': False, 'error': 'JSON invalido'},
-                status=400,
-            )
+            return JsonResponse({'success': False, 'error': 'JSON invalido'}, status=400)
         except Cliente.DoesNotExist:
-            return JsonResponse(
-                {'success': False, 'error': 'E-mail ou senha incorretos'},
-                status=401,
-            )
+            return JsonResponse({'success': False, 'error': 'E-mail ou senha incorretos'}, status=401)
 
-    return render(request, 'accounts/login.html')
+    request.session.flush()
+    nav_token = secrets.token_urlsafe(16)
+    request.session[SESSION_NAV_TOKEN] = nav_token
+    return render(request, 'accounts/login.html', {'guest_nav_token': nav_token})
 
 
 def profile(request):
@@ -52,38 +55,31 @@ def professional_code(request):
     if request.method == 'POST':
         code = request.POST.get('code', '').strip()
         if code == PROFESSIONAL_ACCESS_CODE:
-            cadastro_url = reverse('accounts:cadastro')
-            return redirect(
-                f'{cadastro_url}?tipo=profissional&codigo={PROFESSIONAL_ACCESS_CODE}'
-            )
+            request.session[SESSION_REGISTER_TYPE] = 'profissional'
+            nav_token = request.session.get(SESSION_NAV_TOKEN, '')
+            return redirect(build_guest_url('accounts:cadastro', nav_token))
         error = 'Codigo invalido. Verifique com o administrador do studio.'
 
     return render(
         request,
         'accounts/professional_code.html',
-        {'error': error},
+        {
+            'error': error,
+            'guest_nav_token': request.session.get(SESSION_NAV_TOKEN, ''),
+        },
     )
-
-
-def professional_unavailable_days(request):
-    return render(request, 'accounts/professional_unavailable_days.html')
 
 
 def register(request):
-    account_type = request.GET.get('tipo', 'cliente')
-    professional_code_value = request.GET.get('codigo', '')
-    is_professional = (
-        account_type == 'profissional'
-        and professional_code_value == PROFESSIONAL_ACCESS_CODE
-    )
+    account_type = request.session.get(SESSION_REGISTER_TYPE, 'cliente')
 
     if request.method == 'GET':
         return render(
             request,
             'accounts/register.html',
             {
-                'account_type': 'profissional' if is_professional else 'cliente',
-                'professional_code_value': professional_code_value if is_professional else '',
+                'account_type': account_type,
+                'guest_nav_token': request.session.get(SESSION_NAV_TOKEN, ''),
             },
         )
 
@@ -94,70 +90,54 @@ def register(request):
             email = data.get('email', '').strip()
             numero = data.get('phone', '').strip()
             senha = data.get('password', '').strip()
-            requested_type = data.get('accountType', 'cliente')
-            submitted_code = data.get('professionalCode', '').strip()
 
             if not all([nome, email, numero, senha]):
-                return JsonResponse(
-                    {'success': False, 'error': 'Todos os campos sao obrigatorios'},
-                    status=400,
-                )
+                return JsonResponse({'success': False, 'error': 'Todos os campos sao obrigatorios'}, status=400)
 
-            if requested_type == 'profissional':
-                return create_professional(nome, email, numero, senha, submitted_code)
+            if account_type == 'profissional':
+                profissional = create_professional_object(nome, email, numero, senha)
+                if profissional:
+                    return JsonResponse({
+                        'success': True,
+                        'message': f'Cadastro profissional realizado com sucesso, {profissional.nome}!',
+                        'next_url': '/accounts/profissional/indisponibilidade/',
+                    })
+                return JsonResponse({'success': False, 'error': 'Email ja cadastrado'}, status=400)
 
-            return create_client(nome, email, numero, senha)
+            cliente = create_client_object(nome, email, numero, senha)
+            if cliente:
+                return JsonResponse({
+                    'success': True,
+                    'message': f'Cadastro realizado com sucesso! Bem-vindo, {cliente.nome}!',
+                    'next_url': '/accounts/login/',
+                })
+            return JsonResponse({'success': False, 'error': 'Email ja cadastrado'}, status=400)
 
         except json.JSONDecodeError:
-            return JsonResponse(
-                {'success': False, 'error': 'JSON invalido'},
-                status=400,
-            )
+            return JsonResponse({'success': False, 'error': 'JSON invalido'}, status=400)
         except Exception as exc:
-            return JsonResponse(
-                {'success': False, 'error': str(exc)},
-                status=500,
-            )
+            return JsonResponse({'success': False, 'error': str(exc)}, status=500)
 
-    return JsonResponse(
-        {'success': False, 'error': 'Metodo nao permitido'},
-        status=405,
-    )
+    return JsonResponse({'success': False, 'error': 'Metodo nao permitido'}, status=405)
 
 
-def create_client(nome, email, numero, senha):
+def create_client_object(nome, email, numero, senha):
     if Cliente.objects.filter(email=email).exists():
-        return JsonResponse(
-            {'success': False, 'error': 'Este email ja esta cadastrado'},
-            status=400,
-        )
+        return None
 
     cliente = Cliente.objects.create(
         nome=nome,
         email=email,
         numero=numero,
         senha=senha,
+        tipo=TipoUsuario.CLIENTE,
     )
-
-    return JsonResponse({
-        'success': True,
-        'message': f'Cadastro realizado com sucesso! Bem-vindo, {cliente.nome}!',
-        'next_url': '/accounts/login/',
-    })
+    return cliente
 
 
-def create_professional(nome, email, numero, senha, submitted_code):
-    if submitted_code != PROFESSIONAL_ACCESS_CODE:
-        return JsonResponse(
-            {'success': False, 'error': 'Codigo profissional invalido'},
-            status=403,
-        )
-
-    if Cliente.objects.filter(email=email, tipo=TipoUsuario.PROFISSIONAL).exists():
-        return JsonResponse(
-            {'success': False, 'error': 'Este email ja esta cadastrado como profissional'},
-            status=400,
-        )
+def create_professional_object(nome, email, numero, senha):
+    if Cliente.objects.filter(email=email).exists():
+        return None
 
     profissional = Cliente.objects.create(
         nome=nome,
@@ -166,9 +146,4 @@ def create_professional(nome, email, numero, senha, submitted_code):
         senha=senha,
         tipo=TipoUsuario.PROFISSIONAL,
     )
-
-    return JsonResponse({
-        'success': True,
-        'message': f'Cadastro profissional realizado com sucesso, {profissional.nome}!',
-        'next_url': '/accounts/profissional/indisponibilidade/',
-    })
+    return profissional

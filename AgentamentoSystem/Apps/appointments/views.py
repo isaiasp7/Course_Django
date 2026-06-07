@@ -12,6 +12,26 @@ from decimal import Decimal, InvalidOperation
 from Apps.accounts.models import Cliente
 from Apps.appointments.models import Agenda, AgendaServico, Servicos
 
+AVAILABLE_SLOTS = [
+    time(8, 0),
+    time(8, 30),
+    time(9, 0),
+    time(9, 30),
+    time(10, 0),
+    time(10, 30),
+    time(11, 0),
+    time(14, 0),
+    time(14, 30),
+    time(15, 0),
+    time(15, 30),
+    time(16, 0),
+    time(16, 30),
+    time(17, 0),
+    time(17, 30),
+    time(18, 0),
+]
+AVAILABLE_SLOT_LABELS = [slot.strftime('%H:%M') for slot in AVAILABLE_SLOTS]
+
 MESES_PT = {
     'janeiro': 1,
     'fevereiro': 2,
@@ -27,13 +47,72 @@ MESES_PT = {
     'dezembro': 12,
 }
 
+MONTH_KEYS = {
+    5: 'may',
+    6: 'june',
+}
+
+
+def build_booked_slots_by_day():
+    booked_slots_by_day = {}
+    agendas = Agenda.objects.filter(
+        hora__in=AVAILABLE_SLOTS,
+        data__year=date.today().year,
+        data__month__in=MONTH_KEYS.keys(),
+        status=Agenda.TipoStatus.CONFIRMADO,
+    ).values_list('data', 'hora')
+
+    for agenda_date, agenda_time in agendas:
+        month_key = MONTH_KEYS.get(agenda_date.month)
+        if not month_key:
+            continue
+
+        day_key = f'{agenda_date.day}_{month_key}'
+        booked_slots_by_day.setdefault(day_key, set()).add(
+            agenda_time.strftime('%H:%M'),
+        )
+
+    return {
+        day_key: sorted(slots)
+        for day_key, slots in booked_slots_by_day.items()
+    }
+
+
+def get_fully_booked_days(booked_slots_by_day):
+    available_slots = set(AVAILABLE_SLOT_LABELS)
+    return [
+        day_key
+        for day_key, booked_slots in booked_slots_by_day.items()
+        if available_slots.issubset(set(booked_slots))
+    ]
+
 
 def select_day(request):
-    return render(request, 'appointments/select_day.html')
+    booked_slots_by_day = build_booked_slots_by_day()
+    fully_booked_days = get_fully_booked_days(booked_slots_by_day)
+    return render(
+        request,
+        'appointments/select_day.html',
+        {
+            'fully_booked_days': fully_booked_days,
+            'fully_booked_days_json': json.dumps(fully_booked_days),
+        },
+    )
 
 
 def select_hour(request):
-    return render(request, 'appointments/select_hour.html')
+    booked_slots_by_day = build_booked_slots_by_day()
+    return render(
+        request,
+        'appointments/select_hour.html',
+        {
+            'available_slots': AVAILABLE_SLOT_LABELS,
+            'available_slots_json': json.dumps(AVAILABLE_SLOT_LABELS),
+            'booked_slots_by_day': booked_slots_by_day,
+            'booked_slots_by_day_json': json.dumps(booked_slots_by_day),
+            'selected_date': request.GET.get('date', ''),
+        },
+    )
 
 
 def parse_appointment_date_time(date_label, time_label):
@@ -138,7 +217,11 @@ def confirm(request):
             status=404,
         )
 
+
     profissionais = list(Cliente.objects.filter(tipo='profissional'))
+
+    profissionais = list(Cliente.objects.filter(tipo='PROFISSIONAL'))
+
     if not profissionais:
         return JsonResponse(
             {'success': False, 'error': 'Nenhum profissional cadastrado no sistema.'},
@@ -166,6 +249,22 @@ def confirm(request):
             status=400,
         )
 
+    if appointment_time not in AVAILABLE_SLOTS:
+        return JsonResponse(
+            {'success': False, 'error': 'Horario fora da grade disponivel.'},
+            status=400,
+        )
+
+    if Agenda.objects.filter(
+        data=appointment_date,
+        hora=appointment_time,
+        status=Agenda.TipoStatus.CONFIRMADO,
+    ).exists():
+        return JsonResponse(
+            {'success': False, 'error': 'Este horario acabou de ser ocupado. Escolha outro horario.'},
+            status=409,
+        )
+
     agenda = Agenda.objects.create(
         data=appointment_date,
         hora=appointment_time,
@@ -180,6 +279,19 @@ def confirm(request):
         )
 
     servicos_nomes = [servico.nome for servico in servicos]
+    request.session['usuario_id'] = cliente.id
+    request.session['client_dashboard_appointment'] = {
+        'agenda_id': agenda.id,
+        'professional': profissional.nome,
+        'service': ', '.join(servicos_nomes),
+        'date': appointment_date.strftime('%d/%m'),
+        'hour': appointment_time.strftime('%H:%M'),
+        'duration': '30 minutos',
+        'location': 'Presencial',
+        'unit': 'Studio Centro',
+        'status': 'confirmed',
+    }
+    request.session.modified = True
 
     return JsonResponse({
         'success': True,

@@ -105,6 +105,32 @@
             overflow-y: auto;
             margin-bottom: 24px;
         }
+         .service-list {
+        max-height: 400px;
+        overflow-y: auto;
+        overflow-x: hidden;
+        scrollbar-width: thin;  /* Firefox: barra fina */
+        scrollbar-color: #cbd5e1 transparent;  /* Firefox: cor da barra */
+        }
+        
+        /* Chrome, Safari, Edge - Barra minimalista */
+        .service-list::-webkit-scrollbar {
+            width: 4px;  /* Largura fina */
+        }
+        
+        .service-list::-webkit-scrollbar-track {
+            background: transparent;  /* Fundo transparente */
+            border-radius: 10px;
+        }
+        
+        .service-list::-webkit-scrollbar-thumb {
+            background: #cbd5e1;  /* Cor suave cinza */
+            border-radius: 10px;
+        }
+        
+        .service-list::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;  /* Um pouco mais escuro ao passar o mouse */
+        }
 
         .service-card {
             background: var(--card-bg);
@@ -258,23 +284,23 @@
             <p>Selecione os tratamentos desejados.</p>
 
             <div class="service-list">
-                {% for servico in servicos %}
-                <div
-                    class="service-card"
-                    data-id="{{ servico.id }}"
-                    data-name="{{ servico.nome }}"
-                    data-price="{{ servico.preco }}"
-                    onclick="toggleService(this)"
-                >
-                    <div class="service-info">
-                        <h4>{{ servico.nome }}</h4>
-                    </div>
-                    <div class="service-price">R$ {{ servico.preco }}</div>
+            {% for servico in servicos %}
+            <div
+                class="service-card"
+                data-id="{{ servico.id }}"
+                data-name="{{ servico.nome }}"
+                data-price="{{ servico.preco }}"
+                onclick="toggleService(this)"
+            >
+                <div class="service-info">
+                    <h4>{{ servico.nome }}</h4>
                 </div>
-                {% empty %}
-                <p style="color: var(--text-dim); font-size: 14px;">Nenhum servico cadastrado no sistema.</p>
-                {% endfor %}
+                <div class="service-price">R$ {{ servico.preco }}</div>
             </div>
+            {% empty %}
+            <p style="color: var(--text-dim); font-size: 14px;">Nenhum servico cadastrado no sistema.</p>
+            {% endfor %}
+        </div>
 
             <div class="summary-panel">
                 <div class="summary-row">
@@ -319,6 +345,7 @@
     </div>
 
     <script>
+
         // Estado da Aplicação
         let state = {
             selectedDay: null,

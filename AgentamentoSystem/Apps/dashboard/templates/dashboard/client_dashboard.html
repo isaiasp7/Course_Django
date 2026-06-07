@@ -5,8 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard do Cliente - STUDIO.</title>
-    <link rel="stylesheet" href="{% static 'dashboard/client_dashboard.css' %}">
-    <script src="{% static 'dashboard/client_dashboard.js' %}" defer></script>
+    <link rel="stylesheet" href="{% static 'dashboard/client_dashboard.css' %}?v=20260605-2">
+    <script src="{% static 'dashboard/client_dashboard.js' %}?v=20260605-4" defer></script>
 </head>
 <body>
     <main class="dashboard-shell" data-js="dashboard">
@@ -33,7 +33,7 @@
                     <p class="section-kicker">Notificacoes</p>
                     <h2 id="notifications-title">Atualizacoes recentes</h2>
                 </div>
-                <span class="notification-count" data-js="notification-count">3 novas</span>
+                <span class="notification-count" data-js="notification-count">0 novas</span>
             </div>
 
             <div class="notification-list" data-js="notification-list" aria-live="polite"></div>
@@ -45,56 +45,40 @@
                     <p class="section-kicker">Proximo atendimento</p>
                     <p class="appointment-card__hint">Tudo pronto para sua visita</p>
                 </div>
-                <span class="status-pill" data-js="appointment-status">Confirmado</span>
+                <span class="status-pill" data-js="appointment-status">-</span>
             </div>
 
             <div class="appointment-card__main">
                 <div class="appointment-date-badge" aria-label="Data e horario do atendimento">
-                    <span data-js="appointment-date">27/05</span>
-                    <strong data-js="appointment-hour">14:30</strong>
+                    <span data-js="appointment-date">--/--</span>
+                    <strong data-js="appointment-hour">--:--</strong>
                 </div>
 
                 <div class="appointment-card__identity">
                     <span class="appointment-label">Profissional</span>
-                    <h2 id="next-appointment-title" data-js="professional-name">Dr. Joao</h2>
-                    <p class="service-name" data-js="service-name">Corte e finalizacao</p>
+                    <h2 id="next-appointment-title" data-js="professional-name">Nenhum atendimento</h2>
+                    <p class="service-name" data-js="service-name">Agende um horario para ver os detalhes aqui.</p>
                 </div>
             </div>
 
             <dl class="appointment-details" aria-label="Detalhes do agendamento">
                 <div>
                     <dt>Duracao</dt>
-                    <dd data-js="appointment-duration">30 minutos</dd>
+                    <dd data-js="appointment-duration">-</dd>
                 </div>
                 <div>
                     <dt>Modalidade</dt>
-                    <dd data-js="appointment-location">Presencial</dd>
+                    <dd data-js="appointment-location">-</dd>
                 </div>
                 <div>
                     <dt>Unidade</dt>
-                    <dd data-js="appointment-unit">Studio Centro</dd>
+                    <dd data-js="appointment-unit">-</dd>
                 </div>
             </dl>
         </section>
 
-        <div class="dashboard-grid">
-            <section class="panel reschedule-panel" aria-labelledby="reschedule-title">
-                <div class="section-heading">
-                    <div>
-                        <p class="section-kicker">Reagendamento rapido</p>
-                        <h2 id="reschedule-title">Escolha um novo horario</h2>
-                    </div>
-                    <span class="live-badge">Live</span>
-                </div>
-
-                <div class="slot-scroller" data-js="slot-list" aria-label="Horarios disponiveis"></div>
-
-                <button class="button button--primary" type="button" data-js="reschedule-button" disabled>
-                    Reagendar
-                </button>
-            </section>
-
-            <section class="panel actions-panel" aria-labelledby="actions-title">
+        <div class="dashboard-grid dashboard-grid--control-only">
+            <section class="panel actions-panel actions-panel--full" aria-labelledby="actions-title">
                 <div class="section-heading">
                     <div>
                         <p class="section-kicker">Controle</p>
@@ -102,7 +86,7 @@
                     </div>
                 </div>
 
-                <p class="panel-copy">Use estas acoes quando precisar alterar seu atendimento.</p>
+                <p class="panel-copy">Use estas acoes quando precisar alterar seu atendimento. A remarcacao abre uma selecao rapida de novos horarios.</p>
 
                 <div class="action-stack">
                     <button class="button button--secondary" type="button" data-js="focus-reschedule">
@@ -134,6 +118,30 @@
         </section>
     </div>
 
+
+    <div class="modal-backdrop" data-js="reschedule-modal" hidden>
+        <section class="confirm-modal reschedule-modal-panel" role="dialog" aria-modal="true" aria-labelledby="reschedule-title">
+            <div class="section-heading">
+                <div>
+                    <p class="section-kicker">Remarcacao</p>
+                    <h2 id="reschedule-title">Escolha um novo horario</h2>
+                </div>
+                <span class="live-badge">Live</span>
+            </div>
+
+            <div class="slot-scroller" data-js="slot-list" aria-label="Horarios disponiveis"></div>
+
+            <div class="modal-actions">
+                <button class="button button--secondary" type="button" data-js="close-reschedule">
+                    Fechar
+                </button>
+                <button class="button button--primary" type="button" data-js="reschedule-button" disabled>
+                    Reagendar
+                </button>
+            </div>
+        </section>
+    </div>
     <div class="toast" data-js="toast" role="status" aria-live="polite" hidden></div>
+    {{ appointment|json_script:"client-dashboard-appointment" }}
 </body>
 </html>

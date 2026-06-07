@@ -1,30 +1,51 @@
 (function () {
     "use strict";
 
-    const AppState = {
-        appointment: {
-            professional: "Dr. Joao",
-            service: "Corte e finalizacao",
-            date: "27/05",
-            hour: "14:30",
-            duration: "30 minutos",
-            location: "Presencial",
-            unit: "Studio Centro",
-            status: "confirmed"
-        },
-        selectedSlotId: null,
-        slots: [
-            { id: "may-28-1030", date: "28/05", label: "Amanha", hour: "10:30", professional: "Dr. Joao" },
-            { id: "may-28-1600", date: "28/05", label: "Amanha", hour: "16:00", professional: "Marina" },
-            { id: "may-29-0900", date: "29/05", label: "Sexta", hour: "09:00", professional: "Dr. Joao" },
-            { id: "may-30-1430", date: "30/05", label: "Sabado", hour: "14:30", professional: "Clara" }
-        ],
-        notifications: [
-            { type: "success", text: "Agendamento confirmado", time: "Hoje, 09:12" },
-            { type: "info", text: "Lembrete enviado por WhatsApp", time: "Ontem, 18:40" },
-            { type: "warning", text: "Chegue 10 minutos antes", time: "26/05, 08:00" }
-        ]
+    const emptyAppointment = {
+        professional: "Nenhum atendimento",
+        service: "Agende um horario para ver os detalhes aqui.",
+        date: "--/--",
+        hour: "--:--",
+        duration: "-",
+        location: "-",
+        unit: "-",
+        status: "empty"
     };
+
+    function getInitialAppointment() {
+        const dataElement = document.getElementById("client-dashboard-appointment");
+        if (!dataElement) {
+            return null;
+        }
+
+        try {
+            return JSON.parse(dataElement.textContent);
+        } catch (error) {
+            return null;
+        }
+    }
+
+    const AppState = {
+        appointment: getInitialAppointment() || emptyAppointment,
+        selectedSlotId: null,
+        slots: [],
+        notifications: []
+    };
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== "") {
+            const cookies = document.cookie.split(";");
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === `${name}=`) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
 
     const StatusMap = {
         confirmed: {
@@ -34,6 +55,10 @@
         canceled: {
             label: "Cancelado",
             className: "is-canceled"
+        },
+        empty: {
+            label: "Sem agenda",
+            className: "is-empty"
         }
     };
 
@@ -53,6 +78,8 @@
                 notificationCount: root.querySelector("[data-js='notification-count']"),
                 rescheduleButton: root.querySelector("[data-js='reschedule-button']"),
                 focusRescheduleButton: root.querySelector("[data-js='focus-reschedule']"),
+                rescheduleModal: root.querySelector("[data-js='reschedule-modal']"),
+                closeRescheduleButton: root.querySelector("[data-js='close-reschedule']"),
                 openCancelButton: root.querySelector("[data-js='open-cancel']"),
                 cancelModal: root.querySelector("[data-js='cancel-modal']"),
                 closeCancelButton: root.querySelector("[data-js='close-cancel']"),
@@ -112,9 +139,12 @@
 
     const SlotRenderer = {
         render(elements, slots, selectedSlotId) {
-            elements.slotList.innerHTML = slots
-                .map((slot) => this.createCard(slot, selectedSlotId))
-                .join("");
+            if (!slots.length) {
+                elements.slotList.innerHTML = '<p class="slot-empty">Nenhum horario disponivel para este dia.</p>';
+                return;
+            }
+
+            elements.slotList.innerHTML = slots.map((slot) => this.createCard(slot, selectedSlotId)).join("");
         },
 
         createCard(slot, selectedSlotId) {
@@ -144,6 +174,22 @@
         }
     };
 
+
+    const RescheduleModal = {
+        open(elements) {
+            elements.rescheduleModal.hidden = false;
+            document.body.style.overflow = "hidden";
+            const firstSlot = elements.slotList.querySelector("[data-slot-id]");
+            if (firstSlot) {
+                firstSlot.focus();
+            }
+        },
+
+        close(elements) {
+            elements.rescheduleModal.hidden = true;
+            document.body.style.overflow = "";
+        }
+    };
     const CancelModal = {
         open(elements) {
             elements.cancelModal.hidden = false;
@@ -167,18 +213,50 @@
                 this.selectSlot(elements, slotButton.dataset.slotId);
             });
 
-            elements.rescheduleButton.addEventListener("click", () => {
-                this.confirm(elements);
+            elements.rescheduleButton.addEventListener("click", async () => {
+                await this.confirm(elements);
             });
 
-            elements.focusRescheduleButton.addEventListener("click", () => {
-                elements.slotList.scrollIntoView({ behavior: "smooth", block: "center" });
-                const firstSlot = elements.slotList.querySelector("[data-slot-id]");
+            elements.focusRescheduleButton.addEventListener("click", async () => {
+                RescheduleModal.open(elements);
+                await this.loadSlots(elements);
+            });
 
-                if (firstSlot) {
-                    firstSlot.focus();
+            elements.closeRescheduleButton.addEventListener("click", () => {
+                RescheduleModal.close(elements);
+            });
+
+            elements.rescheduleModal.addEventListener("click", (event) => {
+                if (event.target === elements.rescheduleModal) {
+                    RescheduleModal.close(elements);
                 }
             });
+        },
+
+        async loadSlots(elements) {
+            elements.slotList.innerHTML = '<p class="slot-empty">Carregando horarios...</p>';
+            elements.rescheduleButton.disabled = true;
+            AppState.selectedSlotId = null;
+
+            try {
+                const response = await fetch("/dashboard/remarcar/opcoes/", {
+                    method: "GET",
+                    headers: {
+                        "Accept": "application/json"
+                    }
+                });
+                const data = await response.json();
+
+                if (!data.success) {
+                    elements.slotList.innerHTML = `<p class="slot-empty">${data.error || "Nao foi possivel carregar os horarios."}</p>`;
+                    return;
+                }
+
+                AppState.slots = data.slots || [];
+                SlotRenderer.render(elements, AppState.slots, AppState.selectedSlotId);
+            } catch (error) {
+                elements.slotList.innerHTML = '<p class="slot-empty">Erro ao carregar os horarios.</p>';
+            }
         },
 
         selectSlot(elements, slotId) {
@@ -187,28 +265,50 @@
             SlotRenderer.render(elements, AppState.slots, AppState.selectedSlotId);
         },
 
-        confirm(elements) {
+        async confirm(elements) {
             const selectedSlot = AppState.slots.find((slot) => slot.id === AppState.selectedSlotId);
 
             if (!selectedSlot) {
                 return;
             }
 
-            AppState.appointment.date = selectedSlot.date;
-            AppState.appointment.hour = selectedSlot.hour;
-            AppState.appointment.professional = selectedSlot.professional;
-            AppState.appointment.status = "confirmed";
-
-            NotificationRenderer.add({
-                type: "info",
-                text: `Horario alterado para ${selectedSlot.date} as ${selectedSlot.hour}`,
-                time: "Agora"
-            });
-
-            AppState.selectedSlotId = null;
             elements.rescheduleButton.disabled = true;
-            App.render();
-            Toast.show(elements, "Atendimento reagendado com sucesso.");
+
+            try {
+                const response = await fetch("/dashboard/remarcar/", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": getCookie("csrftoken")
+                    },
+                    body: JSON.stringify({
+                        hour: selectedSlot.hour
+                    })
+                });
+                const data = await response.json();
+
+                if (!data.success) {
+                    elements.rescheduleButton.disabled = false;
+                    Toast.show(elements, data.error || "Nao foi possivel remarcar.");
+                    return;
+                }
+
+                AppState.appointment = data.appointment;
+                NotificationRenderer.add({
+                    type: "info",
+                    text: `Horario alterado para ${data.appointment.date} as ${data.appointment.hour}`,
+                    time: "Agora"
+                });
+
+                AppState.selectedSlotId = null;
+                AppState.slots = [];
+                RescheduleModal.close(elements);
+                App.render();
+                Toast.show(elements, data.message || "Atendimento remarcado com sucesso.");
+            } catch (error) {
+                elements.rescheduleButton.disabled = false;
+                Toast.show(elements, "Erro ao remarcar atendimento.");
+            }
         }
     };
 
@@ -223,22 +323,44 @@
                 }
             });
 
-            elements.confirmCancelButton.addEventListener("click", () => {
-                this.cancelAppointment(elements);
+            elements.confirmCancelButton.addEventListener("click", async () => {
+                await this.cancelAppointment(elements);
             });
         },
 
-        cancelAppointment(elements) {
-            AppState.appointment.status = "canceled";
-            NotificationRenderer.add({
-                type: "warning",
-                text: "Atendimento cancelado pelo cliente",
-                time: "Agora"
-            });
+        async cancelAppointment(elements) {
+            elements.confirmCancelButton.disabled = true;
 
-            CancelModal.close(elements);
-            App.render();
-            Toast.show(elements, "Atendimento cancelado.");
+            try {
+                const response = await fetch("/dashboard/cancelar/", {
+                    method: "POST",
+                    headers: {
+                        "X-CSRFToken": getCookie("csrftoken")
+                    }
+                });
+                const data = await response.json();
+
+                if (!data.success) {
+                    elements.confirmCancelButton.disabled = false;
+                    Toast.show(elements, data.error || "Nao foi possivel cancelar.");
+                    return;
+                }
+
+                AppState.appointment = data.appointment;
+                NotificationRenderer.add({
+                    type: "warning",
+                    text: "Atendimento cancelado pelo cliente",
+                    time: "Agora"
+                });
+
+                CancelModal.close(elements);
+                App.render();
+                Toast.show(elements, data.message || "Atendimento cancelado.");
+            } catch (error) {
+                Toast.show(elements, "Erro ao cancelar atendimento.");
+            } finally {
+                elements.confirmCancelButton.disabled = false;
+            }
         }
     };
 
