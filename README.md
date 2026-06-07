@@ -1,9 +1,8 @@
 # AgentamentoSystem
 
-Sistema web de agendamento para salão/studio, desenvolvido com **Django 6**. Permite cadastro de clientes e profissionais, escolha de data/horário, confirmação de serviços e dashboards para acompanhamento dos atendimentos.
+Sistema web de agendamento para salão/studio de cabeleireiro(a), desenvolvido com **Django 6**. Permite cadastro de clientes e profissionais, escolha de data/horário, confirmação de serviços e dashboards para acompanhamento dos atendimentos.
 
-Repositório: [github.com/isaiasp7/Course_Django](https://github.com/isaiasp7/Course_Django)
-
+No momento o sistema conta com o suporte a dois tipos de usuários:  Clientes e Profissionais 
 ---
 
 ## Requisitos
