@@ -1,10 +1,12 @@
 import json
 from datetime import date, time
 
-from Apps.appointments.models import Agenda
-from django.http import JsonResponse
-from django.shortcuts import render
+from django.http import Http404, JsonResponse
+from django.shortcuts import get_object_or_404, render
 from django.views.decorators.http import require_GET, require_POST
+
+from Apps.appointments.models import Agenda
+from Apps.appointments.services import delete_expired_agendas
 
 MESES_PT = (
     'Janeiro', 'Fevereiro', 'Marco', 'Abril', 'Maio', 'Junho',
@@ -32,6 +34,7 @@ AVAILABLE_SLOTS = [
 
 
 def client_dashboard(request):
+    delete_expired_agendas()
     appointment = request.session.get('client_dashboard_appointment')
     return render(
         request,
@@ -82,6 +85,7 @@ def is_slot_available(appointment_date, slot, current_filter):
 
 @require_GET
 def reschedule_options(request):
+    delete_expired_agendas()
     appointment = request.session.get('client_dashboard_appointment')
     try:
         appointment_date, appointment_time = parse_session_appointment(appointment)
@@ -109,34 +113,53 @@ def reschedule_options(request):
     return JsonResponse({'success': True, 'slots': slots})
 
 
+def format_agenda(agenda):
+    servicos = [
+        agenda_servico.servico.nome
+        for agenda_servico in agenda.agenda_servicos.all()
+    ]
+    return {
+        'id': agenda.id,
+        'data': agenda.data.strftime('%d/%m/%Y'),
+        'hora': agenda.hora.strftime('%H:%M'),
+        'cliente': agenda.clienteFk.nome,
+        'servicos': ', '.join(servicos),
+    }
+
+
 def trabalhos_mes(request):
+    delete_expired_agendas()
     trabalhos_mes = []
+    hoje = date.today()
 
     agendas = Agenda.objects.filter(
-        profissionalFk_id=request.session.get('usuario_id')#requisita os trabalhos do profissional
-    )
+        profissionalFk_id=request.session.get('usuario_id'),
+        data__year=hoje.year,
+        data__month=hoje.month,
+        status=Agenda.TipoStatus.CONFIRMADO,
+    ).select_related(
+        'clienteFk',
+    ).prefetch_related(
+        'agenda_servicos__servico',
+    ).order_by('data', 'hora')
 
     for agenda in agendas:
-
-        servicos = []
-
-        for agenda_servico in agenda.agenda_servicos.all():
-
-            servicos.append(
-                agenda_servico.servico.nome
-            )
-
-        trabalhos_mes.append({
-            'data': agenda.data,
-            'hora': agenda.hora,
-            'cliente': agenda.clienteFk.nome,
-            'servicos': ', '.join(servicos),
-        })
+        trabalhos_mes.append(format_agenda(agenda))
     return trabalhos_mes
+
+
+def get_professional_agenda(request, agenda_id):
+    return get_object_or_404(
+        Agenda,
+        pk=agenda_id,
+        profissionalFk_id=request.session.get('usuario_id'),
+        status=Agenda.TipoStatus.CONFIRMADO,
+    )
 
 
 @require_POST
 def remarcar(request):
+    delete_expired_agendas()
     appointment = request.session.get('client_dashboard_appointment')
     try:
         payload = json.loads(request.body or '{}')
@@ -185,6 +208,7 @@ def remarcar(request):
 
 
 def professional_dashboard(request):
+    delete_expired_agendas()
     hoje = date.today()
     mes_atual = MESES_PT[hoje.month - 1]
 
@@ -198,8 +222,87 @@ def professional_dashboard(request):
     )
 
 
+@require_GET
+def professional_reschedule_options(request):
+    delete_expired_agendas()
+    agenda_id = request.GET.get('agenda_id')
+    try:
+        agenda = get_professional_agenda(request, agenda_id)
+    except Http404:
+        return JsonResponse(
+            {'success': False, 'error': 'Atendimento nao encontrado.'},
+            status=404,
+        )
+    current_filter = {'pk': agenda.pk}
+
+    slots = []
+    for slot in AVAILABLE_SLOTS:
+        if slot == agenda.hora:
+            continue
+
+        if not is_slot_available(agenda.data, slot, current_filter):
+            continue
+
+        hour_label = slot.strftime('%H:%M')
+        slots.append({
+            'id': hour_label,
+            'date': agenda.data.strftime('%d/%m/%Y'),
+            'label': 'Disponivel',
+            'hour': hour_label,
+            'professional': agenda.profissionalFk.nome,
+        })
+
+    return JsonResponse({'success': True, 'slots': slots})
+
+
+@require_POST
+def professional_remarcar(request):
+    delete_expired_agendas()
+    try:
+        payload = json.loads(request.body or '{}')
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'error': 'JSON invalido'}, status=400)
+
+    agenda_id = payload.get('agenda_id')
+    new_hour_label = str(payload.get('hour', '')).strip()
+
+    try:
+        agenda = get_professional_agenda(request, agenda_id)
+        hour, minute = new_hour_label.split(':')
+        new_time = time(int(hour), int(minute))
+    except Http404:
+        return JsonResponse(
+            {'success': False, 'error': 'Atendimento nao encontrado.'},
+            status=404,
+        )
+    except (ValueError, TypeError) as exc:
+        return JsonResponse({'success': False, 'error': str(exc)}, status=400)
+
+    if new_time not in AVAILABLE_SLOTS:
+        return JsonResponse(
+            {'success': False, 'error': 'Horario fora da grade disponivel.'},
+            status=400,
+        )
+
+    if not is_slot_available(agenda.data, new_time, {'pk': agenda.pk}):
+        return JsonResponse(
+            {'success': False, 'error': 'Este horario acabou de ser ocupado. Escolha outro horario.'},
+            status=409,
+        )
+
+    agenda.hora = new_time
+    agenda.save(update_fields=['hora'])
+
+    return JsonResponse({
+        'success': True,
+        'message': 'Atendimento remarcado com sucesso.',
+        'appointment': format_agenda(agenda),
+    })
+
+
 @require_POST
 def cancelar_atendimento(request):
+    delete_expired_agendas()
     appointment = request.session.get('client_dashboard_appointment')
     try:
         current_filter = get_current_appointment_filter(request, appointment)

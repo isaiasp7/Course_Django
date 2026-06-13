@@ -170,10 +170,7 @@
 
         const availableSlots = {{ available_slots_json|safe }};
         const bookedSlots = {{ booked_slots_by_day_json|safe }};
-        const monthKeyByLabel = {
-            maio: 'may',
-            junho: 'june'
-        };
+        const calendarMonths = {{ calendar_months_json|safe }};
 
         // Obter parâmetro da URL
         function getDateFromURL() {
@@ -182,13 +179,18 @@
         }
 
         function getDayKey(dateLabel) {
-            const match = (dateLabel || '').trim().toLowerCase().match(/^(\d{1,2}) de ([a-zçãáéíóú]+)$/);
+            const match = (dateLabel || '').trim().match(/^(\d{1,2}) de (.+)$/i);
             if (!match) {
                 return null;
             }
 
-            const monthKey = monthKeyByLabel[match[2]];
-            return monthKey ? `${parseInt(match[1], 10)}_${monthKey}` : null;
+            const monthLabel = match[2].toLowerCase();
+            const monthData = calendarMonths.find((item) => item.label.toLowerCase() === monthLabel);
+            if (!monthData) {
+                return null;
+            }
+
+            return `${monthData.year}-${String(monthData.month).padStart(2, '0')}-${String(parseInt(match[1], 10)).padStart(2, '0')}`;
         }
 
         // Renderizar slots de horário

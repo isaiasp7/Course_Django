@@ -1,4 +1,5 @@
 import json
+import calendar
 import random
 import re
 from datetime import date, time
@@ -11,6 +12,7 @@ from decimal import Decimal, InvalidOperation
 
 from Apps.accounts.models import Cliente
 from Apps.appointments.models import Agenda, AgendaServico, Servicos
+from Apps.appointments.services import delete_expired_agendas
 
 AVAILABLE_SLOTS = [
     time(8, 0),
@@ -47,27 +49,50 @@ MESES_PT = {
     'dezembro': 12,
 }
 
-MONTH_KEYS = {
-    5: 'may',
-    6: 'june',
-}
+MESES_PT_LABELS = (
+    'Janeiro', 'Fevereiro', 'Marco', 'Abril', 'Maio', 'Junho',
+    'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro',
+)
+
+
+def add_months(year, month, offset):
+    month_index = month - 1 + offset
+    return year + month_index // 12, month_index % 12 + 1
+
+
+def get_calendar_months():
+    today = date.today()
+    months = []
+    for offset in range(2):
+        year, month = add_months(today.year, today.month, offset)
+        months.append({
+            'key': f'{year}-{month:02d}',
+            'label': MESES_PT_LABELS[month - 1],
+            'year': year,
+            'month': month,
+            'days': calendar.monthrange(year, month)[1],
+        })
+    return months
 
 
 def build_booked_slots_by_day():
+    calendar_months = get_calendar_months()
+    first_month = calendar_months[0]
+    last_month = calendar_months[-1]
+    end_year, end_month = add_months(last_month['year'], last_month['month'], 1)
+    start_date = date(first_month['year'], first_month['month'], 1)
+    end_date = date(end_year, end_month, 1)
+
     booked_slots_by_day = {}
     agendas = Agenda.objects.filter(
         hora__in=AVAILABLE_SLOTS,
-        data__year=date.today().year,
-        data__month__in=MONTH_KEYS.keys(),
+        data__gte=start_date,
+        data__lt=end_date,
         status=Agenda.TipoStatus.CONFIRMADO,
     ).values_list('data', 'hora')
 
     for agenda_date, agenda_time in agendas:
-        month_key = MONTH_KEYS.get(agenda_date.month)
-        if not month_key:
-            continue
-
-        day_key = f'{agenda_date.day}_{month_key}'
+        day_key = agenda_date.isoformat()
         booked_slots_by_day.setdefault(day_key, set()).add(
             agenda_time.strftime('%H:%M'),
         )
@@ -88,12 +113,15 @@ def get_fully_booked_days(booked_slots_by_day):
 
 
 def select_day(request):
+    delete_expired_agendas()
+    calendar_months = get_calendar_months()
     booked_slots_by_day = build_booked_slots_by_day()
     fully_booked_days = get_fully_booked_days(booked_slots_by_day)
     return render(
         request,
         'appointments/select_day.html',
         {
+            'calendar_months_json': json.dumps(calendar_months),
             'fully_booked_days': fully_booked_days,
             'fully_booked_days_json': json.dumps(fully_booked_days),
         },
@@ -101,6 +129,8 @@ def select_day(request):
 
 
 def select_hour(request):
+    delete_expired_agendas()
+    calendar_months = get_calendar_months()
     booked_slots_by_day = build_booked_slots_by_day()
     return render(
         request,
@@ -110,6 +140,7 @@ def select_hour(request):
             'available_slots_json': json.dumps(AVAILABLE_SLOT_LABELS),
             'booked_slots_by_day': booked_slots_by_day,
             'booked_slots_by_day_json': json.dumps(booked_slots_by_day),
+            'calendar_months_json': json.dumps(calendar_months),
             'selected_date': request.GET.get('date', ''),
         },
     )
@@ -184,6 +215,7 @@ def resolve_servicos(services_payload):
 
 @require_http_methods(['GET', 'POST'])
 def confirm(request):
+    delete_expired_agendas()
     if request.method == 'GET':
         return render(
             request,

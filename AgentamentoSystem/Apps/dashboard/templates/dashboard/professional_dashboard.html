@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -5,140 +6,58 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Profissional - STUDIO</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --bg-color: #0A0A0A;
-            --card-bg: #161616;
-            --accent: #39FF14;
-            --accent-dim: rgba(57, 255, 20, 0.1);
-            --text-main: #FFFFFF;
-            --text-dim: #888888;
-            --radius: 12px;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Inter', sans-serif;
-        }
-
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            min-height: 100vh;
-            padding: 24px;
-        }
-
-        .dashboard {
-            max-width: 400px;
-            margin: 0 auto;
-        }
-
-        .brand {
-            font-size: 20px;
-            font-weight: 800;
-            margin-bottom: 32px;
-        }
-
-        .eyebrow {
-            color: var(--accent);
-            font-size: 12px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-bottom: 8px;
-        }
-
-        h1 {
-            font-size: 24px;
-            font-weight: 700;
-            margin-bottom: 8px;
-        }
-
-        .subtitle {
-            color: var(--text-dim);
-            font-size: 14px;
-            margin-bottom: 24px;
-        }
-
-        .job-list {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .job-card {
-            background: var(--card-bg);
-            border: 1px solid #333;
-            border-radius: var(--radius);
-            padding: 16px;
-        }
-
-        .job-card__top {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-        }
-
-        .job-date {
-            font-size: 14px;
-            font-weight: 700;
-            color: var(--accent);
-        }
-
-        .job-hour {
-            font-size: 14px;
-            color: var(--text-dim);
-        }
-
-        .job-client {
-            font-size: 16px;
-            font-weight: 600;
-            margin-bottom: 4px;
-        }
-
-        .job-service {
-            font-size: 13px;
-            color: var(--text-dim);
-        }
-
-        .empty-state {
-            color: var(--text-dim);
-            font-size: 14px;
-            text-align: center;
-            padding: 32px 16px;
-            border: 1px dashed #333;
-            border-radius: var(--radius);
-        }
-    </style>
+    <link rel="stylesheet" href="{% static 'dashboard/professional_dashboard.css' %}?v=20260613-1">
+    <script src="{% static 'dashboard/professional_dashboard.js' %}?v=20260613-1" defer></script>
 </head>
 <body>
     <main class="dashboard">
         <div class="brand">STUDIO.</div>
 
         <p class="eyebrow">Dashboard profissional</p>
-        <h1>Seus atendimentos — {{ mes_atual }}</h1>
-        <p class="subtitle">Trabalhos agendados para o mes.</p>
+        <h1>Seus atendimentos - {{ mes_atual }}</h1>
+        <p class="subtitle">Trabalhos agendados para o mes. Atendimentos vencidos sao removidos automaticamente quando o sistema e acessado.</p>
 
-        <div class="job-list">
+        <div class="job-list" data-js="job-list">
             {% for trabalho in trabalhos_mes %}
-                <article class="job-card">
+                <article class="job-card" data-agenda-id="{{ trabalho.id }}">
                     <div class="job-card__top">
                         <span class="job-date">{{ trabalho.data }}</span>
-                        <span class="job-hour">{{ trabalho.hora }}</span>
+                        <span class="job-hour" data-js="job-hour">{{ trabalho.hora }}</span>
                     </div>
                     <p class="job-client">{{ trabalho.cliente }}</p>
                     <p class="job-service">{{ trabalho.servicos }}</p>
+                    <div class="job-card__actions">
+                        <span class="job-hour">Confirmado</span>
+                        <button class="button button--secondary" type="button" data-js="open-reschedule">
+                            Remarcar
+                        </button>
+                    </div>
                 </article>
             {% empty %}
                 <p class="empty-state">Nenhum atendimento neste mes.</p>
             {% endfor %}
         </div>
     </main>
-    <script>
-    console.table('{{ trabalhos_mes }}');
-</script>
+
+    <div class="modal-backdrop" data-js="reschedule-modal" hidden>
+        <section class="modal" role="dialog" aria-modal="true" aria-labelledby="reschedule-title">
+            <p class="eyebrow">Remarcacao</p>
+            <h2 id="reschedule-title">Escolha um novo horario</h2>
+            <p class="modal-copy">Horarios disponiveis no mesmo dia do atendimento.</p>
+
+            <div class="slot-list" data-js="slot-list" aria-label="Horarios disponiveis"></div>
+
+            <div class="modal-actions">
+                <button class="button button--secondary" type="button" data-js="close-reschedule">
+                    Fechar
+                </button>
+                <button class="button button--primary" type="button" data-js="confirm-reschedule" disabled>
+                    Reagendar
+                </button>
+            </div>
+        </section>
+    </div>
+
+    <div class="toast" data-js="toast" role="status" aria-live="polite" hidden></div>
 </body>
 </html>

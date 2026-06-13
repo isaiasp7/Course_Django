@@ -12,19 +12,12 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 
 from pathlib import Path
 import os
-import shutil
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# SQLite fora do OneDrive evita "database is locked" durante migrate/runserver
-DB_DIR = Path(os.environ.get('LOCALAPPDATA', BASE_DIR)) / 'AgentamentoSystem'
-DB_DIR.mkdir(parents=True, exist_ok=True)
-DB_PATH = DB_DIR / 'db.sqlite3'
-LEGACY_DB_PATH = BASE_DIR / 'db.sqlite3'
-
-if LEGACY_DB_PATH.exists() and not DB_PATH.exists():
-    shutil.copy2(LEGACY_DB_PATH, DB_PATH)
+DB_PATH = Path(os.environ.get('SQLITE_PATH', BASE_DIR / 'db.sqlite3'))
+DB_PATH.parent.mkdir(parents=True, exist_ok=True)
 
 
 # Quick-start development settings - unsuitable for production
@@ -99,7 +92,7 @@ WSGI_APPLICATION = 'AgentamentoSystem.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'NAME': DB_PATH,
         'OPTIONS': {
             'timeout': 30,
         },
