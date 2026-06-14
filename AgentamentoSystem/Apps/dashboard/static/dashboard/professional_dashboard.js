@@ -66,6 +66,34 @@
         }).join("");
     }
 
+    function sortDayCards(dayList) {
+        if (!dayList) {
+            return;
+        }
+
+        const cards = Array.from(dayList.querySelectorAll("[data-agenda-id]"));
+        cards
+            .sort((firstCard, secondCard) => {
+                const firstValue = getSortValue(firstCard);
+                const secondValue = getSortValue(secondCard);
+                return firstValue.localeCompare(secondValue);
+            })
+            .forEach((card, index) => {
+                const orderElement = card.querySelector(".job-order");
+                if (orderElement) {
+                    orderElement.textContent = String(index + 1).padStart(2, "0");
+                }
+                dayList.appendChild(card);
+            });
+    }
+
+    function getSortValue(card) {
+        const sortDate = card.dataset.sortDate || "";
+        const sortTime = card.dataset.sortTime || "99:99";
+        const agendaId = String(card.dataset.agendaId || "").padStart(10, "0");
+        return `${sortDate}T${sortTime}-${agendaId}`;
+    }
+
     async function loadSlots(agendaId) {
         state.agendaId = agendaId;
         state.selectedSlotId = null;
@@ -126,6 +154,9 @@
             const card = document.querySelector(`[data-agenda-id='${state.agendaId}']`);
             if (card) {
                 card.querySelector("[data-js='job-hour']").textContent = data.appointment.hora;
+                card.dataset.sortDate = data.appointment.data_iso || card.dataset.sortDate;
+                card.dataset.sortTime = data.appointment.hora || selectedSlot.hour;
+                sortDayCards(card.closest("[data-js='day-jobs']"));
             }
 
             elements.modal.hidden = true;
@@ -139,13 +170,17 @@
     function bindEvents() {
         elements.jobList.addEventListener("click", (event) => {
             const button = event.target.closest("[data-js='open-reschedule']");
-            if (!button) {
+            if (button) {
+                const card = button.closest("[data-agenda-id]");
+                if (card) {
+                    loadSlots(card.dataset.agendaId);
+                }
                 return;
             }
 
-            const card = button.closest("[data-agenda-id]");
+            const card = event.target.closest("[data-agenda-id]");
             if (card) {
-                loadSlots(card.dataset.agendaId);
+                card.classList.toggle("is-expanded");
             }
         });
 

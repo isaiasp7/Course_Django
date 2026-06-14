@@ -121,8 +121,11 @@ def format_agenda(agenda):
     return {
         'id': agenda.id,
         'data': agenda.data.strftime('%d/%m/%Y'),
+        'data_iso': agenda.data.isoformat(),
         'hora': agenda.hora.strftime('%H:%M'),
         'cliente': agenda.clienteFk.nome,
+        'cliente_email': agenda.clienteFk.email,
+        'cliente_numero': agenda.clienteFk.numero,
         'servicos': ', '.join(servicos),
     }
 
@@ -141,11 +144,31 @@ def trabalhos_mes(request):
         'clienteFk',
     ).prefetch_related(
         'agenda_servicos__servico',
-    ).order_by('data', 'hora')
+    ).order_by('data', 'hora', 'id')
 
     for agenda in agendas:
         trabalhos_mes.append(format_agenda(agenda))
     return trabalhos_mes
+
+
+def agrupar_trabalhos_por_dia(trabalhos):
+    dias = []
+    dias_por_data = {}
+
+    for trabalho in trabalhos:
+        data_iso = trabalho['data_iso']
+        if data_iso not in dias_por_data:
+            dia = {
+                'data': trabalho['data'],
+                'data_iso': data_iso,
+                'trabalhos': [],
+            }
+            dias_por_data[data_iso] = dia
+            dias.append(dia)
+
+        dias_por_data[data_iso]['trabalhos'].append(trabalho)
+
+    return dias
 
 
 def get_professional_agenda(request, agenda_id):
@@ -211,13 +234,15 @@ def professional_dashboard(request):
     delete_expired_agendas()
     hoje = date.today()
     mes_atual = MESES_PT[hoje.month - 1]
+    trabalhos = trabalhos_mes(request)
 
     return render(
         request,
         'dashboard/professional_dashboard.html',
         {
             'mes_atual': mes_atual,
-            'trabalhos_mes': trabalhos_mes(request),
+            'trabalhos_mes': trabalhos,
+            'dias_trabalho': agrupar_trabalhos_por_dia(trabalhos),
         },
     )
 

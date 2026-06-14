@@ -5,6 +5,9 @@ from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
 
+from Apps.appointments.models import Agenda
+from Apps.appointments.services import delete_expired_agendas
+
 from .middleware import SESSION_NAV_TOKEN, build_guest_url
 from .models import Cliente, TipoUsuario
 
@@ -12,9 +15,41 @@ PROFESSIONAL_ACCESS_CODE = 'STUDIO-PRO-2026'
 SESSION_REGISTER_TYPE = 'tipo_cadastro'
 
 
+def get_next_confirmed_appointment(cliente):
+    return (
+        Agenda.objects.filter(
+            clienteFk=cliente,
+            status=Agenda.TipoStatus.CONFIRMADO,
+        )
+        .select_related('profissionalFk')
+        .prefetch_related('agenda_servicos__servico')
+        .order_by('data', 'hora', 'id')
+        .first()
+    )
+
+
+def build_client_dashboard_appointment(agenda):
+    servicos = [
+        agenda_servico.servico.nome
+        for agenda_servico in agenda.agenda_servicos.all()
+    ]
+    return {
+        'agenda_id': agenda.id,
+        'professional': agenda.profissionalFk.nome,
+        'service': ', '.join(servicos),
+        'date': agenda.data.strftime('%d/%m'),
+        'hour': agenda.hora.strftime('%H:%M'),
+        'duration': '30 minutos',
+        'location': 'Presencial',
+        'unit': 'Studio Centro',
+        'status': 'confirmed',
+    }
+
+
 def login(request):
     if request.method == 'POST':
         try:
+            delete_expired_agendas()
             data = json.loads(request.body)
             email = data.get('email', '').strip()
             senha = data.get('password', '').strip()
@@ -24,9 +59,22 @@ def login(request):
                 if cliente.tipo == TipoUsuario.PROFISSIONAL
                 else '/appointments/selectDay/'
             )
+            existing_appointment = None
+
+            if cliente.tipo == TipoUsuario.CLIENTE:
+                existing_appointment = get_next_confirmed_appointment(cliente)
+                if existing_appointment:
+                    next_url = '/dashboard/'
+
             request.session['usuario_id'] = cliente.id
             request.session['usuario_nome'] = cliente.nome
             request.session['usuario_tipo'] = cliente.tipo
+            if existing_appointment:
+                request.session['client_dashboard_appointment'] = build_client_dashboard_appointment(
+                    existing_appointment,
+                )
+            else:
+                request.session.pop('client_dashboard_appointment', None)
             request.session.pop(SESSION_REGISTER_TYPE, None)
             return JsonResponse({
                 'success': True,

@@ -6,8 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Profissional - STUDIO</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'dashboard/professional_dashboard.css' %}?v=20260613-1">
-    <script src="{% static 'dashboard/professional_dashboard.js' %}?v=20260613-1" defer></script>
+    <link rel="stylesheet" href="{% static 'dashboard/professional_dashboard.css' %}?v=20260614-1">
+    <script src="{% static 'dashboard/professional_dashboard.js' %}?v=20260614-1" defer></script>
 </head>
 <body>
     <main class="dashboard">
@@ -18,21 +18,48 @@
         <p class="subtitle">Trabalhos agendados para o mes. Atendimentos vencidos sao removidos automaticamente quando o sistema e acessado.</p>
 
         <div class="job-list" data-js="job-list">
-            {% for trabalho in trabalhos_mes %}
-                <article class="job-card" data-agenda-id="{{ trabalho.id }}">
-                    <div class="job-card__top">
-                        <span class="job-date">{{ trabalho.data }}</span>
-                        <span class="job-hour" data-js="job-hour">{{ trabalho.hora }}</span>
+            {% for dia in dias_trabalho %}
+                <section class="job-day" data-day="{{ dia.data_iso }}">
+                    <div class="job-day__header">
+                        <span class="job-day__label">Dia</span>
+                        <strong>{{ dia.data }}</strong>
                     </div>
-                    <p class="job-client">{{ trabalho.cliente }}</p>
-                    <p class="job-service">{{ trabalho.servicos }}</p>
-                    <div class="job-card__actions">
-                        <span class="job-hour">Confirmado</span>
-                        <button class="button button--secondary" type="button" data-js="open-reschedule">
-                            Remarcar
-                        </button>
+
+                    <div class="job-day__list" data-js="day-jobs">
+                        {% for trabalho in dia.trabalhos %}
+                            <article class="job-card" data-agenda-id="{{ trabalho.id }}" data-sort-date="{{ trabalho.data_iso }}" data-sort-time="{{ trabalho.hora }}">
+                                <div class="job-card__main">
+                                    <span class="job-order">
+                                        {{ forloop.counter|stringformat:"02d" }}
+                                    </span>
+
+                                    <div class="job-info">
+                                        <div class="job-info__top">
+                                            <h2 class="job-client">{{ trabalho.cliente }}</h2>
+                                            <span class="status-pill">Confirmado</span>
+                                        </div>
+                                    </div>
+
+                                    <strong class="job-hour" data-js="job-hour">{{ trabalho.hora }}</strong>
+                                </div>
+
+                                <div class="job-card__details" data-js="job-details">
+                                    <p class="job-detail job-detail--client">{{ trabalho.cliente }}</p>
+                                    <div class="job-contact">
+                                        <span class="job-contact__label">Contato:</span>
+                                        <span class="job-contact__value">{{ trabalho.cliente_numero|default:"Numero nao informado" }}</span>
+                                        <span class="job-contact__value">{{ trabalho.cliente_email|default:"Email nao informado" }}</span>
+                                    </div>
+                                    <p class="job-detail job-detail--service">Serviços: {{ trabalho.servicos }}</p>
+
+                                    <button class="button button--secondary" type="button" data-js="open-reschedule">
+                                        Remarcar
+                                    </button>
+                                </div>
+                            </article>
+                        {% endfor %}
                     </div>
-                </article>
+                </section>
             {% empty %}
                 <p class="empty-state">Nenhum atendimento neste mes.</p>
             {% endfor %}

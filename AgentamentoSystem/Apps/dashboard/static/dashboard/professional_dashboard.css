@@ -62,47 +62,132 @@ h1 {
 .job-list {
     display: flex;
     flex-direction: column;
+    gap: 18px;
+}
+
+.job-day {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.job-day__header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #292929;
+}
+
+.job-day__header strong {
+    color: var(--accent);
+    font-size: 15px;
+}
+
+.job-day__label {
+    color: var(--text-dim);
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.job-day__list {
+    display: flex;
+    flex-direction: column;
     gap: 12px;
 }
 
 .job-card {
-    background: var(--card-bg);
-    border: 1px solid #333;
+    background: #151515;
+    color: var(--text-main);
+    border: 1px solid #151515;
     border-radius: var(--radius);
-    padding: 16px;
+    cursor: pointer;
+    min-height: 132px;
+    padding: 17px 23px 24px 14px;
+    overflow: hidden;
+    transition: min-height 180ms ease, padding 180ms ease;
 }
 
-.job-card__top,
-.job-card__actions {
+.job-card.is-expanded {
+    min-height: 280px;
+    padding-bottom: 40px;
+}
+
+.job-order {
+    align-self: start;
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    gap: 12px;
-}
-
-.job-card__top {
-    margin-bottom: 12px;
-}
-
-.job-card__actions {
-    margin-top: 14px;
-}
-
-.job-date {
-    font-size: 14px;
-    font-weight: 700;
-    color: var(--accent);
+    justify-content: center;
+    width: 35px;
+    height: 35px;
+    background: transparent;
+    border: 1px solid #f1f1f1;
+    border-radius: 11px;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 1;
+    pointer-events: none;
 }
 
 .job-hour {
-    font-size: 14px;
-    color: var(--text-dim);
+    justify-self: end;
+    color: #fff;
+    font-size: 17px;
+    font-weight: 400;
+    line-height: 1;
 }
 
 .job-client {
-    font-size: 16px;
-    font-weight: 600;
-    margin-bottom: 4px;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 1.25;
+}
+
+.job-card__main {
+    display: grid;
+    grid-template-columns: 35px minmax(0, 1fr) auto;
+    column-gap: 14px;
+    align-items: start;
+}
+
+.job-info {
+    min-width: 0;
+    padding-top: 47px;
+}
+
+.job-info__top {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+}
+
+.status-pill {
+    color: #28ffac;
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 1.25;
+}
+
+.job-card.is-expanded .job-info {
+    padding-top: 8px;
+}
+
+.job-card.is-expanded .job-info__top {
+    align-items: center;
+}
+
+.job-card.is-expanded .job-client {
+    display: none;
+}
+
+.job-card.is-expanded .status-pill {
+    transform: translateX(8px);
 }
 
 .job-service {
@@ -111,9 +196,62 @@ h1 {
     line-height: 1.4;
 }
 
+.job-card__details {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    column-gap: 24px;
+    row-gap: 28px;
+    max-height: 0;
+    opacity: 0;
+    pointer-events: none;
+    padding: 0 52px 0 34px;
+    transform: translateY(-8px);
+    transition: max-height 180ms ease, opacity 140ms ease, transform 180ms ease, padding-top 180ms ease;
+}
+
+.job-card.is-expanded .job-card__details {
+    max-height: 180px;
+    opacity: 1;
+    pointer-events: auto;
+    padding-top: 17px;
+    transform: translateY(0);
+}
+
+.job-detail {
+    color: #fff;
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 1.35;
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.job-contact {
+    display: grid;
+    gap: 4px;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 1.35;
+    min-width: 0;
+}
+
+.job-contact__label {
+    margin-bottom: 1px;
+}
+
+.job-contact__value {
+    color: #d7d7d7;
+    overflow-wrap: anywhere;
+}
+
+.job-detail--service {
+    grid-column: 1 / -1;
+}
+
 .button {
     border: 0;
-    border-radius: 8px;
+    border-radius: 25px;
     cursor: pointer;
     min-height: 40px;
     padding: 0 14px;
@@ -132,9 +270,19 @@ h1 {
 }
 
 .button--secondary {
-    background: #242424;
+    background: transparent;
     color: var(--text-main);
-    border: 1px solid #333;
+    border: 1px solid #f1f1f1;
+}
+
+.job-card__details .button--secondary {
+    grid-column: 1 / -1;
+    justify-self: center;
+    width: min(184px, 100%);
+    min-height: 37px;
+    margin-top: 12px;
+    font-size: 20px;
+    font-weight: 400;
 }
 
 .empty-state {

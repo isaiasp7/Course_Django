@@ -111,3 +111,6 @@ yarn-error.log*
 # =========================================================
 # **/migrations/
 # !**/migrations/__init__.py
+AgentamentoSystem/PROJECT_STATUS.md
+AgentamentoSystem/AgentamentoSystem/__pycache__/settings.cpython-314.pyc
+AgentamentoSystem/AgentamentoSystem/__pycache__/settings.cpython-314.pyc

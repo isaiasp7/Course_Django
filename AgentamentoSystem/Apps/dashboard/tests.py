@@ -49,3 +49,28 @@ class ProfessionalRescheduleTests(TestCase):
         self.agenda.refresh_from_db()
         self.assertEqual(self.agenda.hora, time(8, 30))
         self.assertTrue(response.json()['success'])
+        self.assertEqual(
+            response.json()['appointment']['data_iso'],
+            self.agenda.data.isoformat(),
+        )
+
+    def test_professional_dashboard_lists_agendas_by_date_and_hour(self):
+        later_agenda = Agenda.objects.create(
+            data=date.today() + timedelta(days=1),
+            hora=time(15, 0),
+            clienteFk=self.client_user,
+            profissionalFk=self.professional,
+        )
+
+        response = self.client.get(reverse('dashboard:professional_dashboard'))
+
+        self.assertEqual(response.status_code, 200)
+        trabalhos = response.context['trabalhos_mes']
+        self.assertEqual(
+            [trabalho['id'] for trabalho in trabalhos],
+            [self.agenda.id, later_agenda.id],
+        )
+        self.assertEqual(
+            response.context['dias_trabalho'][0]['trabalhos'][0]['id'],
+            self.agenda.id,
+        )
